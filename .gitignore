@@ -1,0 +1,6 @@
+node_modules/
+*.sqlite
+.env
+default-env.json
+.cdsrc-private.json
+.DS_Store

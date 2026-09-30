@@ -1,0 +1,36 @@
+{
+  "name": "codeup-supplier-management",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CodeUp internship use case - Supplier Onboarding & Approval",
+  "dependencies": {
+    "@sap/cds": "^10",
+    "bcryptjs": "^3.0.3",
+    "pdf-parse": "^2.4.5"
+  },
+  "devDependencies": {
+    "@cap-js/sqlite": "^3.1.1"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "watch": "cds watch"
+  },
+  "cds": {
+    "requires": {
+      "db": {
+        "kind": "sqlite",
+        "credentials": { "url": "db.sqlite" }
+      },
+      "auth": {
+        "kind": "mocked",
+        "users": {
+          "approver": { "password": "approver", "roles": ["Approval"] },
+          "employee": { "password": "employee", "roles": [] }
+        }
+      }
+    },
+    "server": {
+      "body_parser": { "limit": "15mb" }
+    }
+  }
+}
