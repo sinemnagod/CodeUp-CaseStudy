@@ -5,6 +5,7 @@
   "description": "CodeUp internship use case - Supplier Onboarding & Approval",
   "dependencies": {
     "@sap/cds": "^10",
+    "@sap/xssec": "^4.15.0",
     "bcryptjs": "^3.0.3",
     "pdf-parse": "^2.4.5"
   },
@@ -13,24 +14,43 @@
   },
   "scripts": {
     "start": "cds-serve",
-    "watch": "cds watch"
+    "watch": "cds watch",
+    "watch:hybrid": "cds watch --profile hybrid"
   },
   "cds": {
     "requires": {
       "db": {
         "kind": "sqlite",
-        "credentials": { "url": "db.sqlite" }
+        "credentials": {
+          "url": "db.sqlite"
+        }
       },
       "auth": {
         "kind": "mocked",
         "users": {
-          "approver": { "password": "approver", "roles": ["Approval"] },
-          "employee": { "password": "employee", "roles": [] }
+          "approver": {
+            "password": "approver",
+            "roles": [
+              "Approval"
+            ]
+          },
+          "employee": {
+            "password": "employee",
+            "roles": []
+          }
+        },
+        "[hybrid]": {
+          "kind": "xsuaa"
+        },
+        "[production]": {
+          "kind": "xsuaa"
         }
       }
     },
     "server": {
-      "body_parser": { "limit": "15mb" }
+      "body_parser": {
+        "limit": "15mb"
+      }
     }
   }
 }

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>CodeUp Supplier Management</title>
+
+	<script>
+	/*
+	 * The local Fiori Launchpad.
+	 *
+	 * This page is deliberately independent of the two UI5 apps: it belongs to
+	 * neither of them, it just shows the tiles that open them.
+	 *
+	 * Why the scripts are loaded by hand instead of with plain <script> tags:
+	 * the launchpad sandbox reads window["sap-ushell-config"] the moment it
+	 * starts, so the tile configuration - and the name of the logged-in SAP
+	 * user - have to be in place *before* it loads.
+	 */
+
+	function loadScript(src, attributes) {
+		return new Promise(function (resolve, reject) {
+			var script = document.createElement("script");
+			Object.keys(attributes || {}).forEach(function (name) {
+				script.setAttribute(name, attributes[name]);
+			});
+			script.src = src;
+			script.onload = resolve;
+			script.onerror = function () { reject(new Error("Failed to load " + src)); };
+			document.head.appendChild(script);
+		});
+	}
+
+	(async function startLaunchpad() {
+		// 1. the tiles
+		const config = await (await fetch("appconfig/fioriSandboxConfig.json")).json();
+
+		// 2. who is logged in.
+		//    /user-api/currentUser is provided by the approuter, so it only
+		//    answers when we are running behind it on :5000 - which is also the
+		//    only time there is a real XSUAA user to show.
+		let user = null;
+		try {
+			const response = await fetch("/user-api/currentUser");
+			if (response.ok) { user = await response.json(); }
+		} catch (error) {
+			/* opened directly on :4004, without the approuter - fine */
+		}
+
+		if (user && user.name) {
+			const fullName = [user.firstname, user.lastname].filter(Boolean).join(" ") || user.name;
+			config.services.Container = {
+				adapter: {
+					config: {
+						userProfile: {
+							defaults: {
+								id: user.name,
+								email: user.email || "",
+								firstName: user.firstname || "",
+								lastName: user.lastname || "",
+								fullName: fullName
+							}
+						}
+					}
+				}
+			};
+		}
+
+		window["sap-ushell-config"] = config;
+
+		// 3. the sandbox first, then UI5 itself - this order matters
+		await loadScript("https://ui5.sap.com/test-resources/sap/ushell/bootstrap/sandbox.js",
+			{ id: "sap-ushell-bootstrap" });
+
+		await loadScript("https://ui5.sap.com/resources/sap-ui-core.js", {
+			id: "sap-ui-bootstrap",
+			"data-sap-ui-libs": "sap.m,sap.ushell,sap.ui.layout",
+			"data-sap-ui-theme": "sap_horizon",
+			"data-sap-ui-compat-version": "edge",
+			"data-sap-ui-async": "true",
+			"data-sap-ui-frame-options": "allow"
+		});
+
+		// 4. draw the shell
+		sap.ui.require(["sap/ushell/Container"], function (Container) {
+			const rendered = Container.createRenderer("fiori2", true);
+			// newer UI5 returns a promise here, older versions the renderer itself
+			Promise.resolve(rendered).then(function (renderer) {
+				renderer.placeAt("content");
+			});
+		});
+	})();
+	</script>
+</head>
+
+<body class="sapUiBody">
+	<div id="content"></div>
+</body>
+</html>

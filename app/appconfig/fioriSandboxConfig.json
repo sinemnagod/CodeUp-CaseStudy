@@ -1,0 +1,75 @@
+{
+  "services": {
+
+    "LaunchPage": {
+      "adapter": {
+        "config": {
+          "groups": [
+            {
+              "id": "supplierManagement",
+              "title": "Supplier Management",
+              "isPreset": true,
+              "isVisible": true,
+              "isGroupLocked": false,
+              "tiles": [
+                {
+                  "id": "supplierPortalTile",
+                  "tileType": "sap.ushell.ui.tile.StaticTile",
+                  "properties": {
+                    "title": "Supplier Portal",
+                    "subtitle": "External self-service",
+                    "icon": "sap-icon://supplier",
+                    "targetURL": "#SupplierPortal-display"
+                  }
+                },
+                {
+                  "id": "supplierApprovalsTile",
+                  "tileType": "sap.ushell.ui.tile.StaticTile",
+                  "properties": {
+                    "title": "Supplier Approvals",
+                    "subtitle": "Review & Decide",
+                    "icon": "sap-icon://task",
+                    "targetURL": "#SupplierApprovals-display"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+
+    "NavTargetResolution": {
+      "config": { "enableClientSideTargetResolution": true }
+    },
+
+    "ClientSideTargetResolution": {
+      "adapter": {
+        "config": {
+          "inbounds": {
+            "SupplierPortal-display": {
+              "semanticObject": "SupplierPortal",
+              "action": "display",
+              "title": "Supplier Portal",
+              "signature": { "parameters": {}, "additionalParameters": "allowed" },
+              "resolutionResult": {
+                "applicationType": "URL",
+                "url": "/supplier-portal/index.html"
+              }
+            },
+            "SupplierApprovals-display": {
+              "semanticObject": "SupplierApprovals",
+              "action": "display",
+              "title": "Supplier Approvals",
+              "signature": { "parameters": {}, "additionalParameters": "allowed" },
+              "resolutionResult": {
+                "applicationType": "URL",
+                "url": "/supplier-approvals/index.html"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

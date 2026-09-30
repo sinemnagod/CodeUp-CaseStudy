@@ -4,3 +4,7 @@ node_modules/
 default-env.json
 .cdsrc-private.json
 .DS_Store
+
+# the approuter service key - a secret
+approuter/default-env.json
+service-key.json

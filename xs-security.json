@@ -1,0 +1,35 @@
+{
+  "xsappname": "codeup-supplier",
+  "tenant-mode": "dedicated",
+  "description": "Security profile for the CodeUp supplier management application",
+
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.Approval",
+      "description": "Review supplier applications and approve or reject them"
+    }
+  ],
+
+  "role-templates": [
+    {
+      "name": "Approver",
+      "description": "Review supplier applications and approve or reject them",
+      "scope-references": [ "$XSAPPNAME.Approval" ]
+    }
+  ],
+
+  "role-collections": [
+    {
+      "name": "CodeUp Supplier Approver",
+      "description": "Review supplier applications and approve or reject them",
+      "role-template-references": [ "$XSAPPNAME.Approver" ]
+    }
+  ],
+
+  "oauth2-configuration": {
+    "redirect-uris": [
+      "http://localhost:5000/**",
+      "http://localhost:*/**"
+    ]
+  }
+}

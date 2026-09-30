@@ -1,0 +1,41 @@
+{
+  "welcomeFile": "/index.html",
+  "authenticationMethod": "route",
+  "logout": { "logoutEndpoint": "/do/logout" },
+
+  "routes": [
+    {
+      "source": "^/portal/(.*)$",
+      "target": "/portal/$1",
+      "destination": "srv-api",
+      "authenticationType": "none",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/approval/(.*)$",
+      "target": "/approval/$1",
+      "destination": "srv-api",
+      "authenticationType": "xsuaa",
+      "scope": "$XSAPPNAME.Approval"
+    },
+    {
+      "source": "^/supplier-portal/(.*)$",
+      "target": "supplier-portal/$1",
+      "localDir": "../app",
+      "authenticationType": "none"
+    },
+    {
+      "source": "^/supplier-approvals/(.*)$",
+      "target": "supplier-approvals/$1",
+      "localDir": "../app",
+      "authenticationType": "xsuaa",
+      "scope": "$XSAPPNAME.Approval"
+    },
+    {
+      "source": "^/(.*)$",
+      "target": "$1",
+      "localDir": "../app",
+      "authenticationType": "xsuaa"
+    }
+  ]
+}

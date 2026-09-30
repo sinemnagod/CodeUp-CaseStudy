@@ -579,3 +579,154 @@ rm db.sqlite && npx cds deploy --to sqlite && node scripts/seed-demo.js
 | `certificate-expired.pdf` | the AI rejecting an expired certificate (expired 2022) |
 | `not-a-pdf.txt` | the "only PDF" rule |
 | `too-big.pdf` | the 10 MB rule (this file is 11 MB) |
+
+---
+
+## 15. The Fiori Launchpad
+
+`app/index.html` plus `app/appconfig/fioriSandboxConfig.json`.
+
+This page belongs to **neither** UI5 app. It sits above both and just shows
+tiles that open them — which is why it lives at the `app/` root rather than
+inside `supplier-portal/` or `supplier-approvals/`.
+
+"Sandbox" means a local stand-in for the real Fiori Launchpad you would get on
+BTP. Same look and same navigation rules, no server needed.
+
+### A tile does not point at a URL
+
+It points at an **intent**, written `#SemanticObject-action`:
+
+```
+tile  →  #SupplierPortal-display  →  /supplier-portal/index.html
+```
+
+The middle step is *target resolution*, configured under
+`ClientSideTargetResolution` in `fioriSandboxConfig.json`. The indirection
+means an app can move without touching a single tile, and two different tiles
+can resolve to the same app with different parameters. You can watch it happen:
+clicking the tile first puts `#SupplierPortal-display` in the address bar, and
+only then navigates to the real page.
+
+### Why the scripts are loaded by JavaScript instead of plain `<script>` tags
+
+The sandbox reads `window["sap-ushell-config"]` the instant it starts. We need
+two things in there first:
+
+1. the tile definitions, fetched from `fioriSandboxConfig.json`;
+2. **who is logged in**, fetched from `/user-api/currentUser`.
+
+So `index.html` fetches both, builds the config object, and only then injects
+`sandbox.js` followed by `sap-ui-core.js` — in that order, because the sandbox
+has to register itself before UI5 boots.
+
+`/user-api/currentUser` is an endpoint the **approuter** provides. It therefore
+only answers on `:5000`, which is also the only place there is a real SAP user
+to show. Opened directly on `:4004` the fetch fails, we skip that part, and the
+launchpad still works. That is the requirement *"the authenticated (XSUAA)
+user's details must appear in the launchpad header"*.
+
+### Two things that broke while building it
+
+- `Container.createRenderer()` needs a renderer name in current UI5, otherwise
+  it throws `Missing renderer name`. It must be `createRenderer("fiori2", true)`.
+- A `"_comment"` array in `fioriSandboxConfig.json` made the shell log
+  *"Merging of arrays is not supported"*. The shell merges that file into its
+  own config, so stray keys cause noise. JSON has no comments — explanations
+  belong in documentation, not in config files.
+
+---
+
+## 16. The approuter — the front door
+
+`approuter/` contains almost no code: a `package.json` that pulls in
+`@sap/approuter`, and `xs-app.json`, which is the whole configuration.
+
+Everything the user touches goes through `:5000`. The approuter:
+
+1. makes you log in with a real SAP account (XSUAA);
+2. checks whether the path you asked for is allowed for *you*;
+3. forwards the request to the backend on `:4004`, or serves a static file.
+
+**The real authorization behaviour only exists here.** Talking to `:4004`
+directly in development bypasses it, which is exactly why the use case insists
+the demo runs through the approuter.
+
+### Reading `xs-app.json`
+
+Routes are tried **in order, first match wins**. Ours, in order:
+
+| # | path | authentication | why |
+|---|---|---|---|
+| 1 | `/portal/**` | **none** | a new supplier has no SAP account yet |
+| 2 | `/approval/**` | xsuaa + `Approval` scope | the approver API |
+| 3 | `/supplier-portal/**` | **none** | the supplier's web pages |
+| 4 | `/supplier-approvals/**` | xsuaa + `Approval` scope | so a user without the role cannot even open the app |
+| 5 | `/**` | xsuaa | the launchpad — this is what puts the user's name in the header |
+
+**The order is the security.** Route 5 matches everything. If it were first it
+would swallow `/portal` and no supplier could ever register. The use case warns
+about exactly this: *"If the regex order or the authorization mapping is wrong,
+either the supplier cannot register or the approval endpoints are exposed to
+everyone."*
+
+### Two settings worth being able to explain
+
+**`"csrfProtection": false` on the portal route only.** The approuter normally
+demands a CSRF token on every POST. CSRF attacks work by making *your* browser
+send a request with credentials it attaches automatically — a session cookie.
+The portal route has no SAP session at all, and the supplier's own token is
+sent in a custom header, which a cross-site form cannot set. So the protection
+has nothing to protect there. It stays **on** for `/approval`, where there is a
+real session; the UI5 OData V4 model handles those tokens by itself.
+
+**`"forwardAuthToken": true` on the destination.** The approuter passes the SAP
+token on to the backend, so CAP can check the `Approval` scope *itself*. The
+permission is therefore enforced twice, independently. Without it, the backend
+would have to simply trust that the approuter did its job.
+
+### `xs-security.json`
+
+The security contract, uploaded to BTP when the XSUAA instance is created:
+
+| part | meaning |
+|---|---|
+| **scope** `$XSAPPNAME.Approval` | the permission itself |
+| **role template** `Approver` | a role that grants that scope |
+| **role collection** `CodeUp Supplier Approver` | what an administrator actually assigns to a person |
+| **redirect-uris** `http://localhost:5000/**` | SAP refuses to send a user back to a URL not on this list |
+
+`$XSAPPNAME` is a placeholder BTP replaces with the real application name, so
+two apps in the same subaccount cannot collide on a scope called `Approval`.
+
+### Roles live in the token
+
+Assigning a role collection does **not** affect anyone already logged in. The
+role list is written into the login token when the token is issued, so a user
+keeps their old permissions until they log out and back in. Worth saying out
+loud in the video, because otherwise the 403 demo looks like a bug.
+
+### The `hybrid` profile
+
+`package.json` now has:
+
+```json
+"auth": {
+  "kind": "mocked",
+  "[hybrid]":     { "kind": "xsuaa" },
+  "[production]": { "kind": "xsuaa" }
+}
+```
+
+A **profile** is a named set of overrides. Plain `cds watch` still uses the two
+fake users, so day-to-day development needs no BTP at all;
+`cds watch --profile hybrid` swaps in real token validation.
+
+"Hybrid" = the app runs locally, the identity comes from the real cloud service.
+
+### One service key, two files
+
+`scripts/setup-env.js` reads `service-key.json` and writes both
+`default-env.json` (for the backend) and `approuter/default-env.json` (for the
+approuter), because the two processes each look in their own folder. All three
+files are in `.gitignore` — a service key is a password.
