@@ -1,0 +1,186 @@
+<mvc:View
+	controllerName="codeup.supplierportal.controller.Application"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:core="sap.ui.core"
+	xmlns:form="sap.ui.layout.form"
+	xmlns:u="sap.ui.unified"
+	xmlns:pf="sap.suite.ui.commons"
+	displayBlock="true">
+
+	<Page backgroundDesign="List">
+
+		<customHeader>
+			<Bar>
+				<contentLeft>
+					<Title text="{i18n>appTitle}" level="H1" titleStyle="H5"/>
+				</contentLeft>
+				<contentRight>
+					<ObjectStatus text="{ui>/email}" icon="sap-icon://person-placeholder"/>
+					<Button text="{i18n>logoutButton}" icon="sap-icon://log" type="Transparent" press=".onLogout"/>
+				</contentRight>
+			</Bar>
+		</customHeader>
+
+		<content>
+
+			<!-- ================= FORM: first application or re-apply ================= -->
+			<VBox visible="{ui>/formVisible}" class="sapUiSmallMargin">
+
+				<MessageStrip text="{i18n>formIntro}" type="Information" showIcon="true"
+					visible="{= !${ui>/isReapply} }" class="sapUiSmallMarginBottom"/>
+				<MessageStrip text="{i18n>msgReadOnlyHint}" type="Warning" showIcon="true"
+					visible="{ui>/isReapply}" class="sapUiSmallMarginBottom"/>
+
+				<Panel headerText="{i18n>formTitle}">
+					<form:SimpleForm editable="true" layout="ResponsiveGridLayout"
+						columnsM="2" columnsL="2" columnsXL="2"
+						labelSpanM="4" labelSpanL="4" labelSpanXL="4">
+
+						<Label text="{i18n>companyNameLabel}" required="true"/>
+						<Input value="{app>/companyName}" editable="{ui>/edit/companyName}"
+							placeholder="{i18n>companyNamePlaceholder}"
+							valueState="{ui>/valueState/companyName}"
+							liveChange=".onRequiredFieldChange" name="companyName"/>
+
+						<Label text="{i18n>contactPersonLabel}" required="true"/>
+						<Input value="{app>/contactPerson}" editable="{ui>/edit/contactPerson}"
+							valueState="{ui>/valueState/contactPerson}"
+							liveChange=".onRequiredFieldChange" name="contactPerson"/>
+
+						<Label text="{i18n>emailLabel}"/>
+						<!-- comes from the account, never editable -->
+						<Input value="{app>/email}" editable="false"/>
+
+						<Label text="{i18n>phoneLabel}"/>
+						<Input value="{app>/phone}" editable="{ui>/edit/phone}"/>
+
+						<Label text="{i18n>countryLabel}"/>
+						<Select selectedKey="{app>/country}" editable="{ui>/edit/country}" width="100%">
+							<core:Item key="DE" text="{i18n>countryDE}"/>
+							<core:Item key="TR" text="{i18n>countryTR}"/>
+							<core:Item key="AT" text="{i18n>countryAT}"/>
+							<core:Item key="CH" text="{i18n>countryCH}"/>
+							<core:Item key="NL" text="{i18n>countryNL}"/>
+							<core:Item key="FR" text="{i18n>countryFR}"/>
+							<core:Item key="GB" text="{i18n>countryGB}"/>
+							<core:Item key="US" text="{i18n>countryUS}"/>
+							<core:Item key="IT" text="{i18n>countryIT}"/>
+							<core:Item key="ES" text="{i18n>countryES}"/>
+							<core:Item key="PL" text="{i18n>countryPL}"/>
+						</Select>
+
+						<Label text="{i18n>categoryLabel}"/>
+						<Select selectedKey="{app>/category}" editable="{ui>/edit/category}" width="100%">
+							<core:Item key="Hardware"   text="{i18n>categoryHardware}"/>
+							<core:Item key="Software"   text="{i18n>categorySoftware}"/>
+							<core:Item key="Services"   text="{i18n>categoryServices}"/>
+							<core:Item key="Consulting" text="{i18n>categoryConsulting}"/>
+						</Select>
+
+						<Label text="{i18n>taxNumberLabel}"/>
+						<Input value="{app>/taxNumber}" editable="{ui>/edit/taxNumber}"/>
+
+						<Label text="{i18n>websiteLabel}"/>
+						<Input value="{app>/website}" editable="{ui>/edit/website}" type="Url"/>
+
+						<Label text="{i18n>addressLabel}"/>
+						<TextArea value="{app>/address}" editable="{ui>/edit/address}" rows="3" width="100%"/>
+
+						<Label text="{i18n>notesLabel}"/>
+						<TextArea value="{app>/notes}" editable="{ui>/edit/notes}" rows="3" width="100%"/>
+
+					</form:SimpleForm>
+				</Panel>
+
+				<Panel headerText="{i18n>certificateTitle}" class="sapUiSmallMarginTop">
+					<!-- The rules are stated BEFORE the user picks a file, as the use case asks. -->
+					<MessageStrip text="{i18n>certificateIntro}" type="Information" showIcon="true"
+						class="sapUiSmallMarginBottom"/>
+					<u:FileUploader
+						id="certificateUploader"
+						name="certificate"
+						width="100%"
+						placeholder="{i18n>certificatePlaceholder}"
+						icon="sap-icon://attachment"
+						fileType="pdf"
+						mimeType="application/pdf"
+						maximumFileSize="10"
+						uploadOnChange="false"
+						sameFilenameAllowed="true"
+						change=".onFileChange"
+						typeMissmatch=".onFileTypeMismatch"
+						fileSizeExceed=".onFileSizeExceed"/>
+				</Panel>
+
+				<HBox justifyContent="End" class="sapUiSmallMarginTop sapUiSmallMarginBottom">
+					<Button text="{i18n>submitButton}" type="Emphasized" icon="sap-icon://paper-plane"
+						press=".onSubmit" busy="{ui>/busy}"/>
+				</HBox>
+			</VBox>
+
+			<!-- ================= STATUS: after submitting ================= -->
+			<VBox visible="{ui>/statusVisible}" class="sapUiSmallMargin">
+
+				<Panel>
+					<VBox class="sapUiSmallMargin">
+						<HBox justifyContent="SpaceBetween" alignItems="Start">
+							<Title text="{app>/companyName}" level="H2"/>
+							<ObjectStatus text="{ui>/statusText}" state="{ui>/statusState}"/>
+						</HBox>
+						<HBox wrap="Wrap" class="sapUiSmallMarginTop">
+							<VBox class="sapUiMediumMarginEnd">
+								<Label text="{i18n>contactPersonShort}"/>
+								<Text text="{app>/contactPerson}"/>
+							</VBox>
+							<VBox class="sapUiMediumMarginEnd">
+								<Label text="{i18n>emailLabel}"/>
+								<Text text="{app>/email}"/>
+							</VBox>
+							<VBox class="sapUiMediumMarginEnd">
+								<Label text="{i18n>categoryLabel}"/>
+								<Text text="{app>/category}"/>
+							</VBox>
+							<VBox>
+								<Label text="{i18n>submittedAtShort}"/>
+								<Text text="{ui>/submittedAtText}"/>
+							</VBox>
+						</HBox>
+					</VBox>
+				</Panel>
+
+				<MessageStrip text="{ui>/resultMessage}" type="{ui>/resultMessageType}" showIcon="true"
+					class="sapUiSmallMarginTop sapUiSmallMarginBottom"/>
+
+				<HBox justifyContent="End" visible="{ui>/canReapply}" class="sapUiSmallMarginBottom">
+					<Button text="{i18n>reapplyButton}" type="Emphasized" icon="sap-icon://refresh"
+						press=".onReapply"/>
+				</HBox>
+
+				<Panel headerText="{i18n>statusTitle}" class="sapUiSmallMarginTop">
+					<pf:ProcessFlow id="processFlow" foldedCorners="false" scrollable="false" showLabels="true">
+						<pf:lanes>
+							<pf:ProcessFlowLaneHeader laneId="lane1" position="0"
+								iconSrc="sap-icon://create-form" text="{i18n>stepSubmitted}" state="{flow>/lane1}"/>
+							<pf:ProcessFlowLaneHeader laneId="lane2" position="1"
+								iconSrc="sap-icon://inspect"     text="{i18n>stepInReview}"  state="{flow>/lane2}"/>
+							<pf:ProcessFlowLaneHeader laneId="lane3" position="2"
+								iconSrc="sap-icon://decision"    text="{i18n>stepResult}"    state="{flow>/lane3}"/>
+						</pf:lanes>
+						<pf:nodes>
+							<pf:ProcessFlowNode laneId="lane1" nodeId="node1" title="1"
+								children="{flow>/node1children}" state="{flow>/node1}" isTitleClickable="false"/>
+							<pf:ProcessFlowNode laneId="lane2" nodeId="node2" title="2"
+								children="{flow>/node2children}" state="{flow>/node2}" isTitleClickable="false"/>
+							<pf:ProcessFlowNode laneId="lane3" nodeId="node3" title="3"
+								state="{flow>/node3}" isTitleClickable="false"/>
+						</pf:nodes>
+					</pf:ProcessFlow>
+				</Panel>
+
+			</VBox>
+
+		</content>
+	</Page>
+
+</mvc:View>

@@ -1,0 +1,71 @@
+{
+  "_version": "1.60.0",
+
+  "sap.app": {
+    "id": "codeup.supplierportal",
+    "type": "application",
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "applicationVersion": { "version": "1.0.0" }
+  },
+
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": { "icon": "sap-icon://supplier" },
+    "deviceTypes": { "desktop": true, "tablet": true, "phone": true }
+  },
+
+  "sap.ui5": {
+    "dependencies": {
+      "minUI5Version": "1.120.0",
+      "libs": {
+        "sap.ui.core": {},
+        "sap.m": {},
+        "sap.f": {},
+        "sap.ui.layout": {},
+        "sap.ui.unified": {},
+        "sap.suite.ui.commons": {}
+      }
+    },
+
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "codeup.supplierportal.i18n.i18n",
+          "supportedLocales": ["", "tr"],
+          "fallbackLocale": ""
+        }
+      }
+    },
+
+    "rootView": {
+      "viewName": "codeup.supplierportal.view.App",
+      "type": "XML",
+      "id": "rootView",
+      "async": true
+    },
+
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "type": "View",
+        "viewType": "XML",
+        "path": "codeup.supplierportal.view",
+        "controlId": "app",
+        "controlAggregation": "pages",
+        "async": true
+      },
+      "routes": [
+        { "pattern": "",            "name": "login",       "target": "login" },
+        { "pattern": "register",    "name": "register",    "target": "register" },
+        { "pattern": "application", "name": "application", "target": "application" }
+      ],
+      "targets": {
+        "login":       { "id": "login",       "name": "Login" },
+        "register":    { "id": "register",    "name": "Register" },
+        "application": { "id": "application", "name": "Application" }
+      }
+    }
+  }
+}
