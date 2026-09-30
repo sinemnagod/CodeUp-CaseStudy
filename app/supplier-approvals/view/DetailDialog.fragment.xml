@@ -1,0 +1,107 @@
+<core:FragmentDefinition
+	xmlns="sap.m"
+	xmlns:core="sap.ui.core"
+	xmlns:form="sap.ui.layout.form"
+	xmlns:pf="sap.suite.ui.commons">
+
+	<Dialog id="detailDialog" title="{detail>/companyName}" contentWidth="45rem" resizable="true">
+		<content>
+			<VBox class="sapUiSmallMargin">
+
+				<form:SimpleForm editable="false" layout="ResponsiveGridLayout"
+					columnsM="2" columnsL="2" columnsXL="2">
+					<Label text="{i18n>colContactPerson}"/>
+					<Text text="{detail>/contactPerson}"/>
+					<Label text="{i18n>colEmail}"/>
+					<Text text="{detail>/email}"/>
+					<Label text="{i18n>colCategory}"/>
+					<Text text="{ path: 'detail>/category', formatter: '.formatCategory' }"/>
+					<Label text="{i18n>colPhone}"/>
+					<Text text="{detail>/phone}"/>
+					<Label text="{i18n>colCountry}"/>
+					<Text text="{detail>/country}"/>
+					<Label text="{i18n>colTaxNumber}"/>
+					<Text text="{detail>/taxNumber}"/>
+					<Label text="{i18n>colWebsite}"/>
+					<Text text="{detail>/website}"/>
+					<Label text="{i18n>colSubmittedAt}"/>
+					<Text text="{ui>/submittedAtText}"/>
+					<Label text="{i18n>colAddress}"/>
+					<Text text="{detail>/address}"/>
+					<Label text="{i18n>colNotes}"/>
+					<Text text="{detail>/notes}"/>
+				</form:SimpleForm>
+
+				<!-- process flow, same three steps the supplier sees -->
+				<Title text="{i18n>statusTitle}" level="H3" class="sapUiMediumMarginTop sapUiSmallMarginBottom"/>
+				<pf:ProcessFlow id="detailProcessFlow" foldedCorners="false" scrollable="false" showLabels="true">
+					<pf:lanes>
+						<pf:ProcessFlowLaneHeader laneId="lane1" position="0"
+							iconSrc="sap-icon://create-form" text="{i18n>stepSubmitted}" state="{flow>/lane1}"/>
+						<pf:ProcessFlowLaneHeader laneId="lane2" position="1"
+							iconSrc="sap-icon://inspect"     text="{i18n>stepInReview}"  state="{flow>/lane2}"/>
+						<pf:ProcessFlowLaneHeader laneId="lane3" position="2"
+							iconSrc="sap-icon://decision"    text="{i18n>stepResult}"    state="{flow>/lane3}"/>
+					</pf:lanes>
+					<pf:nodes>
+						<pf:ProcessFlowNode laneId="lane1" nodeId="node1" title="1"
+							children="{flow>/node1children}" state="{flow>/node1}" isTitleClickable="false"/>
+						<pf:ProcessFlowNode laneId="lane2" nodeId="node2" title="2"
+							children="{flow>/node2children}" state="{flow>/node2}" isTitleClickable="false"/>
+						<pf:ProcessFlowNode laneId="lane3" nodeId="node3" title="3"
+							state="{flow>/node3}" isTitleClickable="false"/>
+					</pf:nodes>
+				</pf:ProcessFlow>
+
+				<!-- the uploaded certificate, served straight from the database -->
+				<Title text="{i18n>certificateLabel}" level="H3" class="sapUiMediumMarginTop sapUiSmallMarginBottom"/>
+				<HBox alignItems="Center">
+					<core:Icon src="sap-icon://pdf-attachment" class="sapUiTinyMarginEnd"/>
+					<Link text="{detail>/certificateName}" href="{ui>/certificateUrl}" target="_blank"/>
+				</HBox>
+
+				<!-- decision area, only while the application is still pending -->
+				<VBox visible="{ui>/canDecide}" class="sapUiMediumMarginTop">
+					<Label text="{i18n>editableFieldsLabel}"/>
+					<MultiComboBox id="editableFields" width="100%"
+						placeholder="{i18n>editableFieldsPlaceholder}">
+						<core:Item key="companyName"   text="{i18n>colCompany}"/>
+						<core:Item key="contactPerson" text="{i18n>colContactPerson}"/>
+						<core:Item key="phone"         text="{i18n>colPhone}"/>
+						<core:Item key="country"       text="{i18n>colCountry}"/>
+						<core:Item key="category"      text="{i18n>colCategory}"/>
+						<core:Item key="taxNumber"     text="{i18n>colTaxNumber}"/>
+						<core:Item key="website"       text="{i18n>colWebsite}"/>
+						<core:Item key="address"       text="{i18n>colAddress}"/>
+						<core:Item key="notes"         text="{i18n>colNotes}"/>
+					</MultiComboBox>
+
+					<Label text="{i18n>decisionNoteLabel}" class="sapUiSmallMarginTop"/>
+					<TextArea id="decisionNote" width="100%" rows="3"
+						value="{ui>/decisionNote}"
+						valueState="{ui>/decisionNoteState}"
+						valueStateText="{i18n>REJECTION_NOTE_REQUIRED}"
+						placeholder="{i18n>decisionNotePlaceholder}"
+						liveChange=".onDecisionNoteChange"/>
+				</VBox>
+
+				<!-- what was already decided, when the application is closed -->
+				<VBox visible="{= !${ui>/canDecide} }" class="sapUiMediumMarginTop">
+					<MessageStrip text="{ui>/decisionSummary}" type="{ui>/decisionSummaryType}" showIcon="true"/>
+				</VBox>
+
+			</VBox>
+		</content>
+
+		<buttons>
+			<Button text="{i18n>analyzeWithAiButton}" icon="sap-icon://ai"
+				visible="{ui>/canDecide}" press=".onAnalyzeWithAI"/>
+			<Button text="{i18n>approveButton}" icon="sap-icon://accept" type="Success"
+				visible="{ui>/canDecide}" press=".onApprove"/>
+			<Button text="{i18n>rejectButton}" icon="sap-icon://decline" type="Reject"
+				visible="{ui>/canDecide}" press=".onReject"/>
+			<Button text="{i18n>closeButton}" type="Emphasized" press=".onCloseDetail"/>
+		</buttons>
+	</Dialog>
+
+</core:FragmentDefinition>

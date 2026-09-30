@@ -1,0 +1,102 @@
+<mvc:View
+	controllerName="codeup.supplierapprovals.controller.Main"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc"
+	displayBlock="true">
+
+	<Page showHeader="true" title="{i18n>appTitle}" backgroundDesign="List">
+
+		<content>
+
+			<!--
+				The status tabs. `count` shows how many applications are in each
+				state; the controller refreshes those numbers with four small
+				$count requests whenever something changes.
+			-->
+			<IconTabBar id="statusTabs" expandable="false" select=".onTabSelect"
+				selectedKey="All" backgroundDesign="Transparent" headerBackgroundDesign="Transparent">
+				<items>
+					<IconTabFilter key="All"       text="{i18n>tabAll}"      icon="sap-icon://list"          count="{counts>/All}"/>
+					<IconTabFilter key="Submitted" text="{i18n>tabPending}"  icon="sap-icon://pending"       count="{counts>/Submitted}" iconColor="Critical"/>
+					<IconTabFilter key="Approved"  text="{i18n>tabApproved}" icon="sap-icon://accept"        count="{counts>/Approved}"  iconColor="Positive"/>
+					<IconTabFilter key="Rejected"  text="{i18n>tabRejected}" icon="sap-icon://decline"       count="{counts>/Rejected}"  iconColor="Negative"/>
+				</items>
+
+				<content>
+					<Table id="applicationsTable"
+						items="{ path: '/Applications', parameters: { $count: true }, events: { dataReceived: '.onDataReceived' } }"
+						growing="true" growingThreshold="20"
+						mode="None"
+						itemPress=".onRowPress"
+						noDataText="{i18n>noDataText}">
+
+						<headerToolbar>
+							<OverflowToolbar>
+								<Title text="{i18n>tableTitle}" level="H2"/>
+								<ToolbarSpacer/>
+								<SearchField width="18rem"
+									placeholder="{i18n>searchPlaceholder}"
+									value="{ui>/searchQuery}"
+									search=".onSearch"
+									liveChange=".onSearch"/>
+								<!-- only shown once some filter is actually active -->
+								<Button text="{i18n>clearFiltersButton}"
+									icon="sap-icon://clear-filter"
+									visible="{ui>/hasFilters}"
+									press=".onClearFilters"/>
+								<Button icon="sap-icon://action-settings"
+									tooltip="{i18n>settingsTooltip}"
+									press=".onOpenSettings"/>
+								<Button icon="sap-icon://refresh"
+									tooltip="{i18n>refreshTooltip}"
+									press=".onRefresh"/>
+							</OverflowToolbar>
+						</headerToolbar>
+
+						<columns>
+							<Column visible="{cols>/companyName}"><Text text="{i18n>colCompany}"/></Column>
+							<Column visible="{cols>/contactPerson}"><Text text="{i18n>colContactPerson}"/></Column>
+							<Column visible="{cols>/email}"><Text text="{i18n>colEmail}"/></Column>
+							<Column visible="{cols>/phone}"><Text text="{i18n>colPhone}"/></Column>
+							<Column visible="{cols>/country}"><Text text="{i18n>colCountry}"/></Column>
+							<Column visible="{cols>/category}"><Text text="{i18n>colCategory}"/></Column>
+							<Column visible="{cols>/taxNumber}"><Text text="{i18n>colTaxNumber}"/></Column>
+							<Column visible="{cols>/website}"><Text text="{i18n>colWebsite}"/></Column>
+							<Column visible="{cols>/address}"><Text text="{i18n>colAddress}"/></Column>
+							<Column visible="{cols>/notes}"><Text text="{i18n>colNotes}"/></Column>
+							<Column visible="{cols>/submittedAt}"><Text text="{i18n>colSubmittedAt}"/></Column>
+							<Column visible="{cols>/status}"><Text text="{i18n>colStatus}"/></Column>
+						</columns>
+
+						<items>
+							<ColumnListItem type="Active">
+								<cells>
+									<Text text="{companyName}"/>
+									<Text text="{contactPerson}"/>
+									<Text text="{email}"/>
+									<Text text="{phone}"/>
+									<Text text="{country}"/>
+									<Text text="{ path: 'category', formatter: '.formatCategory' }"/>
+									<Text text="{taxNumber}"/>
+									<Text text="{website}"/>
+									<Text text="{address}"/>
+									<Text text="{notes}"/>
+									<!-- targetType 'any' hands our formatter the raw ISO string.
+									     Without it the OData V4 model converts the value using the
+									     type from $metadata first, and the formatter never sees it. -->
+									<Text text="{ path: 'submittedAt', targetType: 'any', formatter: '.formatDateTime' }"/>
+									<ObjectStatus
+										text="{ path: 'status', formatter: '.formatStatusText' }"
+										state="{ path: 'status', formatter: '.formatStatusState' }"
+										inverted="true"/>
+								</cells>
+							</ColumnListItem>
+						</items>
+					</Table>
+				</content>
+			</IconTabBar>
+
+		</content>
+	</Page>
+
+</mvc:View>

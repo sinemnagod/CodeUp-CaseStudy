@@ -396,3 +396,186 @@ being changed.
   for a 10 MB file limit.
 - **One row for account + application**, because a supplier can only ever have
   one application.
+
+---
+
+## 12. The Supplier Approvals app
+
+Files under `app/supplier-approvals/`. Same shape as the portal, plus two
+**fragments** — a fragment is a reusable piece of UI that is not a whole
+screen, which is how dialogs are normally written in UI5.
+
+| file | job |
+|---|---|
+| `view/Main.view.xml` | tabs + table |
+| `view/SettingsDialog.fragment.xml` | columns / sorting / category filter |
+| `view/DetailDialog.fragment.xml` | one application + the decision buttons |
+| `controller/Main.controller.js` | all the behaviour |
+| `controller/BaseController.js` | shared helpers and formatters |
+
+### This app *does* use OData model binding
+
+Unlike the portal. `manifest.json` declares the service as a data source:
+
+```json
+"dataSources": {
+  "approvalService": { "uri": "/approval/", "type": "OData",
+                       "settings": { "odataVersion": "4.0" } }
+}
+```
+
+and the table binds straight to the entity:
+
+```xml
+items="{ path: '/Applications', parameters: { $count: true } }"
+```
+
+That one line gives us loading, paging and a row count. Filtering and sorting
+are then handed to the **server**:
+
+```js
+this._binding().filter(filters);
+this._binding().sort(new Sorter(field, descending));
+```
+
+UI5 turns these into `$filter=` and `$orderby=` in the URL, so the database
+does the work. The app would behave the same with 50 000 applications as with 6.
+
+### How the filters combine
+
+Three independent things can narrow the list:
+
+| source | what it produces |
+|---|---|
+| the status tab | `status eq 'Submitted'` |
+| the category ticks | `category eq 'Software' OR category eq 'Services'` |
+| the search box | `contains(companyName,'x') OR contains(contactPerson,'x') OR contains(email,'x')` |
+
+Each group is internally **OR**, and the groups are combined with **AND** —
+"in the right tab, AND in one of those categories, AND matching the search".
+In UI5, `new Filter({ filters: [...], and: false })` is the OR group;
+passing an array of filters to `.filter()` ANDs them.
+
+### The tab counts
+
+Four small `$count` requests:
+
+```
+/approval/Applications/$count?$filter=status eq 'Submitted'
+```
+
+Asking the server to count is far cheaper than downloading every row just to
+count them in the browser.
+
+### Calling an action from UI5
+
+```js
+const action = this.getView().getModel().bindContext("/approveApplication(...)");
+action.setParameter("ID", id);
+await action.execute();
+```
+
+The `(...)` is **literal OData V4 syntax** meaning "parameters follow". For a
+function that returns something, the result is read afterwards with
+`action.getBoundContext().getObject()`.
+
+### Why the approver cannot simply edit a row
+
+`Applications` is `@readonly`. Every change goes through an action, which is
+what lets the backend guarantee:
+
+- a rejection always carries a reason;
+- an application can only be decided **once** (`ALREADY_DECIDED`);
+- `decidedBy` is taken from the SAP token (`req.user.id`), never from the
+  browser, so an approver cannot claim to be somebody else.
+
+### The certificate link
+
+The `Link` in the detail dialog points at:
+
+```
+/approval/Applications(<id>)/certificate
+```
+
+That URL exists purely because of the `@Core.MediaType` annotation on the
+column. OData streams the bytes out of the database with the right content
+type, and the browser opens it as a PDF. We wrote no download code at all.
+
+---
+
+## 13. Three bugs found while building the approvals app
+
+Worth knowing, because two of them are UI5 traps you will meet again.
+
+### a) `getBinding("items")` was `undefined` in `onInit`
+
+The table control exists during `onInit`, but its **binding** does not yet.
+Two fixes were applied:
+
+- the `dataReceived` event is declared on the binding in the XML instead:
+  `events: { dataReceived: '.onDataReceived' }`;
+- everywhere else the binding is fetched fresh via a small `_binding()`
+  helper rather than cached in a variable.
+
+### b) The date column was empty
+
+The first attempt bound the column with an explicit OData type. UI5 threw
+`Illegal sap.ui.model.odata.type.DateTimeOffset value` and then, after
+switching to a formatter, `The given date instance isn't valid`.
+
+Two separate causes, stacked:
+
+1. **The formatter never saw the raw value.** In OData V4 the model converts a
+   property using the type from `$metadata` *before* your formatter runs.
+   The fix is `targetType: 'any'`, which tells UI5 to hand the formatter the
+   untouched ISO string:
+
+   ```xml
+   text="{ path: 'submittedAt', targetType: 'any', formatter: '.formatDateTime' }"
+   ```
+
+2. **`DateFormat` rejects a plain `new Date()`.** Since UI5 1.111, when the UI5
+   timezone can differ from the browser's, `DateFormat` wants a `UI5Date`:
+
+   ```js
+   DateFormat.getDateTimeInstance({ style: "medium" })
+             .format(UI5Date.getInstance(value));
+   ```
+
+The payoff: the date now reads `30 Eyl 2026 21:50:51` in Turkish and
+`Sep 30, 2026, 9:50:51 PM` in English, with no date logic of our own.
+
+### c) A search-and-replace that ate itself
+
+Replacing `this._table.getBinding("items")` with `this._binding()` everywhere
+also rewrote the inside of `_binding()` — turning it into a function that
+called itself forever. A reminder to read what a bulk replace actually did.
+
+---
+
+## 14. Demo data
+
+`scripts/seed-demo.js` creates five suppliers with submitted applications:
+
+```bash
+node scripts/seed-demo.js
+```
+
+It only uses the **public portal endpoints**, exactly as a real supplier would,
+so it doubles as an end-to-end test of register + submit. Every demo account
+uses the password `Secret123!`.
+
+To start completely fresh:
+
+```bash
+rm db.sqlite && npx cds deploy --to sqlite && node scripts/seed-demo.js
+```
+
+### Test files for the video — `test-files/`
+
+| file | use it to show |
+|---|---|
+| `certificate-valid.pdf` | the happy path (valid until 2028) |
+| `certificate-expired.pdf` | the AI rejecting an expired certificate (expired 2022) |
+| `not-a-pdf.txt` | the "only PDF" rule |
+| `too-big.pdf` | the 10 MB rule (this file is 11 MB) |

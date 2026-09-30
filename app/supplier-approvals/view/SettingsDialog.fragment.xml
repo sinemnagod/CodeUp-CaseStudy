@@ -1,0 +1,64 @@
+<core:FragmentDefinition
+	xmlns="sap.m"
+	xmlns:core="sap.ui.core">
+
+	<Dialog id="settingsDialog" title="{i18n>settingsTitle}" contentWidth="24rem">
+		<content>
+			<VBox class="sapUiSmallMargin">
+
+				<!-- show / hide columns -->
+				<Title text="{i18n>settingsColumns}" level="H3" class="sapUiSmallMarginBottom"/>
+				<CheckBox text="{i18n>colCompany}"       selected="{cols>/companyName}"/>
+				<CheckBox text="{i18n>colContactPerson}" selected="{cols>/contactPerson}"/>
+				<CheckBox text="{i18n>colEmail}"         selected="{cols>/email}"/>
+				<CheckBox text="{i18n>colPhone}"         selected="{cols>/phone}"/>
+				<CheckBox text="{i18n>colCountry}"       selected="{cols>/country}"/>
+				<CheckBox text="{i18n>colCategory}"      selected="{cols>/category}"/>
+				<CheckBox text="{i18n>colTaxNumber}"     selected="{cols>/taxNumber}"/>
+				<CheckBox text="{i18n>colWebsite}"       selected="{cols>/website}"/>
+				<CheckBox text="{i18n>colAddress}"       selected="{cols>/address}"/>
+				<CheckBox text="{i18n>colNotes}"         selected="{cols>/notes}"/>
+				<CheckBox text="{i18n>colSubmittedAt}"   selected="{cols>/submittedAt}"/>
+				<CheckBox text="{i18n>colStatus}"        selected="{cols>/status}"/>
+
+				<!-- sorting -->
+				<Title text="{i18n>settingsSorting}" level="H3" class="sapUiMediumMarginTop sapUiSmallMarginBottom"/>
+				<Select selectedKey="{ui>/sortField}" change=".onSortChange" width="100%">
+					<core:Item key="companyName"   text="{i18n>colCompany}"/>
+					<core:Item key="contactPerson" text="{i18n>colContactPerson}"/>
+					<core:Item key="email"         text="{i18n>colEmail}"/>
+					<core:Item key="category"      text="{i18n>colCategory}"/>
+					<core:Item key="submittedAt"   text="{i18n>colSubmittedAt}"/>
+					<core:Item key="status"        text="{i18n>colStatus}"/>
+				</Select>
+				<SegmentedButton selectedKey="{ui>/sortOrder}" selectionChange=".onSortChange"
+					width="100%" class="sapUiTinyMarginTop">
+					<items>
+						<SegmentedButtonItem key="asc"  text="{i18n>settingsSortAscending}"  icon="sap-icon://sort-ascending"/>
+						<SegmentedButtonItem key="desc" text="{i18n>settingsSortDescending}" icon="sap-icon://sort-descending"/>
+					</items>
+				</SegmentedButton>
+
+				<!-- extra filter -->
+				<Title text="{i18n>settingsFilter}" level="H3" class="sapUiMediumMarginTop sapUiSmallMarginBottom"/>
+				<Label text="{i18n>colCategory}"/>
+				<MultiComboBox id="categoryFilter" selectionChange=".onCategoryFilterChange" width="100%">
+					<core:Item key="Hardware"   text="{i18n>categoryHardware}"/>
+					<core:Item key="Software"   text="{i18n>categorySoftware}"/>
+					<core:Item key="Services"   text="{i18n>categoryServices}"/>
+					<core:Item key="Consulting" text="{i18n>categoryConsulting}"/>
+				</MultiComboBox>
+
+			</VBox>
+		</content>
+
+		<beginButton>
+			<Button text="{i18n>clearFiltersButton}" icon="sap-icon://clear-filter"
+				type="Transparent" press=".onClearFilters"/>
+		</beginButton>
+		<endButton>
+			<Button text="{i18n>closeButton}" type="Emphasized" press=".onCloseSettings"/>
+		</endButton>
+	</Dialog>
+
+</core:FragmentDefinition>
