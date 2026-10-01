@@ -171,6 +171,8 @@ keeps the old permissions until it is replaced.
 
 | symptom | cause |
 |---|---|
+| **403 at `localhost:5000` with `Server: AirTunes`** | **macOS AirPlay Receiver owns port 5000.** System Settings → General → AirDrop & Handoff → AirPlay Receiver → **Off**. Check with `lsof -nP -iTCP:5000 -sTCP:LISTEN` — no output means free. |
+| approuter exits with `EADDRINUSE` | same thing: something else already has port 5000 |
 | `No UAA service found` | `approuter/default-env.json` missing — run `node scripts/setup-env.js` |
 | `Route references unknown destination "srv-api"` | same file missing |
 | Login loops, or "redirect URI mismatch" | `http://localhost:5000/**` is not in the redirect URIs. Fix `xs-security.json` and update the instance parameters |

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="" data-cockpit-page="cockpitPageStillLoading">
+<head>
+<title>SAP BTP Cockpit</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="nonce" content="c058ff7f-fea9-423f-b902-f2a0d24b74cf">
+<style>
+/**
+ * CSS styles needed for Cockpit loading
+ */
+
+div#cockpitLoading, div#cockpitLoadingGlobalAccount, div#unsupportedBrowserMsg, div#noScriptMessage {
+	font-size: 16px;
+	font-family: sans-serif;
+	font-weight: bold;
+	color: #666;
+	text-align: center;
+}
+
+div#cockpitLoading, div#cockpitLoadingGlobalAccount {
+	margin-top: 200px;
+	margin-bottom: 2em;
+}
+
+div#noScriptMessage {
+	color: #000;
+}
+
+div#unsupportedBrowser {
+	margin-top: 200px;
+	margin-bottom: 2em;
+	display: none;
+	text-align: center;
+}
+
+div#supportedBrowserLink {
+	text-align: center;
+}
+
+div#loadError {
+	margin-top: 200px;
+	margin-bottom: 2em;
+	display: none;
+	font-family: sans-serif;
+	font-size: 16px;
+	font-weight: bold;
+	font-style: italic;
+	color: rgb(192, 0, 0);
+	text-align: center;
+}
+</style>
+<!-- This web application uses images from http://www.gosquared.com/ -->
+<!-- Copyright (c) 2013 Go Squared Ltd. http://www.gosquared.com/ -->
+<link rel="license" href="/images/gosquared/LICENSE.txt" />
+
+<!-- https://wiki.one.int.sap/wiki/display/SAPONEDX/Shared+Libraries -->
+		<script type="text/javascript" nonce="c058ff7f-fea9-423f-b902-f2a0d24b74cf">
+			window.SAP = window.SAP || {};
+			window.SAP.global = {
+				trustArc: {
+					domain: 'btpcockpit.com',
+					privacyPolicyLink: 'https://help.sap.com/docs/btp/sap-btp-trial-privacy-statement/sap-btp-trial-privacy-statement',
+					cookieLink: '/legaldocuments/SAP_BTP_Cockpit_Trial_Cookie_Statement.pdf'
+				},
+				isProd: true,
+				tagManagerUrl: 'https://www.sap.com/tmgr/ccc66c06b30b/f278f732b1fb/launch-28f339f567e4.min.js',
+				applyConsentNoPageReload: true
+			};
+		</script>
+		<script src="https://www.sap.com/sharedlibs/globaltop/script-latest.min.js"></script>
+
+		<!-- Hide the automatically injected TrustArc cookie preferences element -->
+		<style>
+			#teconsent {
+				display: none !important;
+			}
+		</style>
+<script type="text/javascript" nonce="c058ff7f-fea9-423f-b902-f2a0d24b74cf">
+            window.walkmeLoaderConfig = {
+               systemUrl: 'https://cdn-us01.walkme.cloud.sap/users/ba2e9badf70646a89ae57e5484898815/walkme_ba2e9badf70646a89ae57e5484898815_https.js',
+               tenantId: 'btpcockpit',
+               endUserId: 'sinem121995@hotmail.com',
+               theme: 'sap_horizon',
+               language: 'en-US',
+            };
+        </script>
+</head>
+<body role="application" class="sapUiSizeCompact">
+
+	<div id="cockpitLoadingBusyIndicator">
+		<div id="cockpitLoading">SAP BTP Cockpit is loading, please wait...</div>
+		<div id="cockpitLoadingGlobalAccount" style="display: none">Loading your global account...</div>
+	</div>
+	<noscript>
+		<div id="noScriptMessage">SAP BTP Cockpit cannot be displayed because JavaScript is not enabled; please enable JavaScript in your browser and try again.</div>
+	</noscript>
+	<div id="unsupportedBrowser" style="display: none">
+		<div id="unsupportedBrowserMsg" style="padding: 20px"></div>
+		<div id="buttons"></div>
+	</div>
+	<div id="loadError" style="display: none"></div>
+	<div id="shellArea"></div>
+
+
+<!-- https://wiki.one.int.sap/wiki/display/DBA/EDDL+-+Event+Driven+Data+Layer  -->
+    <script type="text/javascript" nonce="c058ff7f-fea9-423f-b902-f2a0d24b74cf">
+		window.adobeDataLayer = window.adobeDataLayer || [];
+		window.adobeDataLayer.push({
+			'event': 'globalDL',
+			'site': {
+				'name': 'btpcockpit-' + window.location.pathname.replace(/^\/|\/$/g, '')
+			},
+			'user': {
+				'loginStatus': 'yes'
+			}
+		});
+		window.adobeDataLayer.push({'event': 'userLogin',
+			'user': {
+				'loginStatus': 'yes'
+			}
+		});
+    </script>
+<script type="text/javascript" nonce="c058ff7f-fea9-423f-b902-f2a0d24b74cf">
+		// Set the cachebuster token for overwriteFormatMessage
+		window.cachebusterToken = '/~20260928100014350~';
+</script>
+
+<script id="sap-ui-bootstrap"
+	src="https://ui5.sap.com/1.148.1/resources/sap-ui-core.js"
+	crossorigin="anonymous"
+	data-sap-ui-theme="sap_horizon"
+	data-sap-ui-language="en-US"
+	data-sap-ui-frameOptions="deny"
+	data-sap-ui-bindingsyntax="complex"
+	data-sap-ui-libs="sap.m,sap.ui.layout,sap.tnt,sap.ui.unified,sap.f,sap.ui.table,cockpit.core,cockpit.common,cockpit.shared,cockpit.globalaccount,cockpit.personalization,cockpit.trial"
+	data-sap-ui-preload="async"
+
+	data-sap-ui-appCacheBuster="/"
+	data-sap-ui-resourceroots='{
+		"cockpit": "/resources/~20260928100014350~/cockpit"
+	}'
+	data-sap-ui-onInit="module:cockpit/core/loadCockpit"
+	data-cockpit-title="SAP BTP Cockpit"
+	data-bootstrap-call="/ajax/getBootstrapConfiguration"
+	data-csrftoken="cf11def79112b1479d2e3b749de2905">
+</script>
+</body>
+</html>

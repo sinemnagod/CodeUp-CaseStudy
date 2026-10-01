@@ -730,3 +730,50 @@ fake users, so day-to-day development needs no BTP at all;
 `default-env.json` (for the backend) and `approuter/default-env.json` (for the
 approuter), because the two processes each look in their own folder. All three
 files are in `.gitignore` — a service key is a password.
+
+---
+
+## 17. Two setup traps that cost real time
+
+Both were silent failures — nothing said "you did this wrong".
+
+### a) The XSUAA instance was created without its parameters
+
+The BTP create-instance wizard has a **Create** button on the *first* screen,
+before the **Parameters** step. Clicking it produces a perfectly working XSUAA
+instance that has **no scopes, no role templates, no role collection and no
+redirect URIs** — none of our security model at all.
+
+The tell is in the service key:
+
+```
+xsappname : na-7852b1c9-472e-46c1-94eb-c5c44993ab79!t720307
+```
+
+`na` is **not available** — BTP invented a name because it was given none.
+A correct instance reads `codeup-supplier!t720307`.
+
+The symptom appears three steps later ("I can't find the role collection"),
+far away from the cause. `scripts/check-xsuaa.js` now turns this into a loud
+failure right after the service key is downloaded.
+
+### b) macOS AirPlay Receiver owns port 5000
+
+On recent macOS, Control Center listens on port 5000 and answers **403
+Forbidden** to everything. So `localhost:5000` returned a 403 that looked
+exactly like a missing authorization — while the approuter was not running at
+all, having failed with `EADDRINUSE`.
+
+The giveaway was in the response headers:
+
+```
+HTTP/1.1 403 Forbidden
+Server: AirTunes/870.14.1
+```
+
+**`Server: AirTunes` is not SAP.** Fix: System Settings → General →
+AirDrop & Handoff → AirPlay Receiver → Off.
+
+**The lesson worth repeating in the video:** when something returns an error,
+check *who* answered before assuming it was your application. One `curl -i`
+showing the response headers saved a long hunt through the security config.
