@@ -32,11 +32,28 @@ XSUAA is the service that issues login tokens and knows who has which role.
    - **Runtime Environment**: `Cloud Foundry`
    - **Space**: `dev`
    - **Instance Name**: `codeup-uaa`  ← use exactly this name
-4. Click **Next**
+4. Click **Next** — **do not click Create yet.**
+
+   > This is the step everyone misses. If you click **Create** on the first
+   > screen, BTP makes the instance with *empty* parameters and your whole
+   > security setup is silently skipped.
+
 5. You land on a **Parameters** step with a JSON box.
    Open `xs-security.json` from the project root, copy **all** of it, and paste
    it in, replacing whatever is there.
-6. Click **Create**
+6. *Now* click **Create**
+
+### Check it worked before going on
+
+After step 2 below (once you have the service key), run:
+
+```bash
+node scripts/check-xsuaa.js
+```
+
+It should say **OK**. If it reports `na-<uuid>`, the parameters were not
+applied — delete the instance and redo this step. `na` stands for
+*not available*: BTP invented a name because it was given nothing.
 
 > **What that JSON does.** It declares one *scope* (`Approval`), one *role
 > template* that grants the scope, and one *role collection* named
