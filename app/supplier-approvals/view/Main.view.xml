@@ -24,7 +24,10 @@
 
 				<content>
 					<Table id="applicationsTable"
-						items="{ path: '/Applications', parameters: { $count: true }, events: { dataReceived: '.onDataReceived' } }"
+						items="{ path: '/Applications',
+						         parameters: { $count: true,
+						                       $select: 'ID,companyName,contactPerson,email,phone,country,category,taxNumber,website,address,notes,submittedAt,status,certificateName,decisionNote,decidedBy,decidedAt,aiDecision' },
+						         events: { dataReceived: '.onDataReceived' } }"
 						growing="true" growingThreshold="20"
 						mode="None"
 						itemPress=".onRowPress"

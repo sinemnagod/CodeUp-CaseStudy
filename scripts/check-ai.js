@@ -58,7 +58,10 @@ function fail(message, hint) {
 		fail('No destination called "openrouter" in this subaccount.',
 			'Create it: Connectivity -> Destinations -> Create Destination.');
 	}
-	const destination = (await found.json()).destinationConfiguration;
+	// The list endpoint returns the destination flat; the single-destination
+	// endpoint sometimes wraps it in destinationConfiguration. Accept both.
+	const payload = await found.json();
+	const destination = payload.destinationConfiguration || payload;
 	const apiKey = destination['URL.headers.Authorization'];
 
 	console.log('  destination URL     : ' + destination.URL);

@@ -16,7 +16,7 @@ const { executeHttpRequest } = require('@sap-cloud-sdk/http-client');
 // retired, and OpenRouter then answers 404 "No endpoints found". If the AI
 // stops working for no apparent reason, check this id first - run
 // `node scripts/check-ai.js`, which lists the ids that exist today.
-const DEFAULT_MODEL = 'google/gemma-4-31b-it:free';
+const DEFAULT_MODEL = 'poolside/laguna-s-2.1:free';
 const DESTINATION = 'openrouter';
 
 // PDFs can be long and we pay per token, so only the beginning is sent.
@@ -149,6 +149,9 @@ async function analyzeCertificate(application, certificateBuffer) {
 		// the endpoint itself answers 401 when it is reachable but unauthorised.
 		if (status === 404) { throw new Error('AI_MODEL_UNKNOWN'); }
 		if (status === 401 || status === 403) { throw new Error('AI_KEY_REJECTED'); }
+		// Free models are shared and get rate-limited upstream. Worth its own
+		// message, because "try again in a minute" is genuinely the fix.
+		if (status === 429) { throw new Error('AI_RATE_LIMITED'); }
 		throw new Error('AI_UNAVAILABLE');
 	}
 

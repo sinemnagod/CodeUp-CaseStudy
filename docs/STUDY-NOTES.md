@@ -992,3 +992,70 @@ A scanned certificate — a photo saved as PDF — has no text layer. `pdf-parse
 returns almost nothing, and rather than let the model hallucinate a verdict
 from an empty page, the backend stops with `AI_PDF_UNREADABLE`. Refusing to
 guess is a feature here, not a limitation.
+
+### Getting the AI working: three failures in a row
+
+Each one looked like the previous one's cause, which is what made it slow.
+
+**1. `404` — which was not a wrong URL.**
+The model id hardcoded in `srv/ai.js` had been **retired** from OpenRouter, and
+OpenRouter answers `404` for an unknown model. The destination was perfect all
+along. Two checks separated them in a minute:
+
+```bash
+curl -o /dev/null -w "%{http_code}" -X POST https://openrouter.ai/api/v1/chat/completions ...
+#   -> 401, so the endpoint exists and the path is right
+curl -s https://openrouter.ai/api/v1/models | grep <model-id>
+#   -> absent, so the model is the problem
+```
+
+**Free model ids are not stable infrastructure.** Pinning one in source is a
+bug with a timer on it. It now lives in a constant with `AI_MODEL` as an
+override, and `scripts/check-ai.js` lists the ids that exist today.
+
+**2. `429` — rate-limited upstream.**
+Free models are shared, and a popular one can simply be busy. That is not an
+outage, so it gets its own message: *"try again in a minute"*.
+
+**3. Models that answer `200` with nothing.**
+Testing fourteen free models against one trivial prompt, most returned HTTP 200
+with an **empty** `content` — they are reasoning models that put their output
+elsewhere or spend the whole budget thinking. Only two returned clean JSON.
+`poolside/laguna-s-2.1:free` was then verified on the real task:
+
+```
+expired cert (2022)  -> Rejected | The certificate expired on 02 March 2022.
+valid cert   (2028)  -> Approved | The certificate is valid until 14 January 2028...
+```
+
+**"HTTP 200" is not "it worked".** Had the check only asserted a 2xx, a model
+that answers nothing would have passed and then failed mysteriously in the app.
+
+### Why the real error was invisible at first
+
+The SAP Cloud SDK puts only the status code in `error.message`. The service's
+own explanation — *"No endpoints found for ..."* — sits in
+`error.response.data`, which nothing logged. One line fixed that:
+
+```js
+console.error('[ai] call failed:', error.message,
+    body ? '\n[ai] service said: ' + JSON.stringify(body).slice(0, 500) : '');
+```
+
+And a single `AI_UNAVAILABLE` for every failure was hiding the distinction that
+mattered. There are now four: `AI_MODEL_UNKNOWN` (404), `AI_KEY_REJECTED`
+(401/403), `AI_RATE_LIMITED` (429) and `AI_UNAVAILABLE` for anything else.
+
+**The lesson:** an error message that cannot distinguish between "wrong key",
+"dead model" and "busy right now" is not a safety net, it is a blindfold.
+
+### A quieter bug found on the way
+
+In the detail dialog the certificate link showed its PDF icon but **no file
+name**. The dialog copies its data from the table row, and the OData V4 model
+with `autoExpandSelect` only requests the fields the table's columns bind —
+`certificateName` is not a column, so it was never fetched. Fixed by naming the
+fields explicitly in the binding's `$select`.
+
+Worth remembering: with `autoExpandSelect`, anything you read in code rather
+than bind in the view has to be requested on purpose.
