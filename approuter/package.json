@@ -2,11 +2,8 @@
   "name": "codeup-approuter",
   "version": "1.0.0",
   "private": true,
-  "description": "Front door: SAP login, route protection and static hosting",
+  "description": "Holds the @sap/approuter dependency. Started from the PROJECT ROOT with 'npm run approuter', because the approuter serves static files relative to the folder it is started in.",
   "dependencies": {
     "@sap/approuter": "^23.0.0"
-  },
-  "scripts": {
-    "start": "node node_modules/@sap/approuter/approuter.js"
   }
 }

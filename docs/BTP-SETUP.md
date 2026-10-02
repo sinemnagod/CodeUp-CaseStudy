@@ -121,11 +121,15 @@ Terminal 1 — the backend, now validating real SAP tokens:
 npm run watch:hybrid
 ```
 
-Terminal 2 — the approuter, the front door:
+Terminal 2 — the approuter, the front door. **Run this from the project root**,
+not from inside `approuter/`:
 
 ```bash
-cd approuter && npm start
+npm run approuter
 ```
+
+> The approuter resolves `localDir` relative to the folder it is started in, so
+> starting it anywhere else means it cannot find the web pages.
 
 Then open:
 
@@ -177,4 +181,5 @@ keeps the old permissions until it is replaced.
 | `Route references unknown destination "srv-api"` | same file missing |
 | Login loops, or "redirect URI mismatch" | `http://localhost:5000/**` is not in the redirect URIs. Fix `xs-security.json` and update the instance parameters |
 | 403 on the Approvals app although you assigned the role | you did not log out and in again |
+| `Forbidden` on every page *after* a successful SAP login | the approuter was started from the wrong folder. Run `npm run approuter` from the project root |
 | 401 from the backend but fine at the approuter | backend not started with `--profile hybrid` |

@@ -777,3 +777,46 @@ AirDrop & Handoff → AirPlay Receiver → Off.
 **The lesson worth repeating in the video:** when something returns an error,
 check *who* answered before assuming it was your application. One `curl -i`
 showing the response headers saved a long hunt through the security config.
+
+### c) `localDir: "../app"` made the approuter forbid its own files
+
+Symptom: SAP login succeeded, and then **every page** showed a bare
+`Forbidden`. Confusingly, the *public* supplier pages were 403 too, while the
+*protected* API routes looked like they returned 200.
+
+Two separate things were going on.
+
+**The 200s were a red herring.** An unauthenticated request to a protected
+route does not get a 401 from the approuter — it gets **200 with an HTML page
+whose script redirects you to the login server**. So "200" there meant "here is
+a login page", not "here is your data". Checking the *body*, not just the
+status code, made that obvious.
+
+**The real bug** was in `xs-app.json`:
+
+```json
+"localDir": "../app"
+```
+
+The approuter serves static files relative to the directory it was **started**
+in, and it refuses to follow `../` out of that directory — that is standard
+path-traversal protection, and it is right to do it. Starting the approuter
+inside `approuter/` meant every static route pointed outside its root, so it
+answered 403 to all of them.
+
+The fix was to start the approuter from the **project root** and drop the `..`:
+
+```
+xs-app.json          at the project root,  "localDir": "app"
+default-env.json     at the project root,  read by BOTH processes
+npm run approuter    started from the project root
+```
+
+Both the backend and the approuter are now started from the same folder, so
+one `default-env.json` serves both — the backend reads `VCAP_SERVICES`, the
+approuter reads `VCAP_SERVICES` and `destinations`.
+
+**The diagnostic worth remembering:** the three failing routes had one thing in
+common — they all served files from `localDir`. The two that worked
+(`/portal`, `/approval`) both used `destination` instead. Grouping the failures
+by what they shared pointed straight at `localDir`, with no guessing.

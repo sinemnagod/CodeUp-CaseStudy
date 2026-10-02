@@ -1,16 +1,16 @@
 /**
- * Turns one XSUAA service key into the two local config files that the
- * backend and the approuter need.
+ * Turns your XSUAA service key into the local config file that the backend
+ * and the approuter both read.
  *
  *   1. download the service key from the BTP cockpit
  *   2. save it as  service-key.json  in the project root
  *   3. node scripts/setup-env.js
  *
  * It writes:
- *   default-env.json            -> read by the CAP backend  (:4004)
- *   approuter/default-env.json  -> read by the approuter    (:5000)
+ *   default-env.json  -> read by both the CAP backend (:4004) and the
+ *                      approuter (:5000), which are both started from here.
  *
- * Both files are in .gitignore, because a service key is a password.
+ * It is in .gitignore, because a service key is a password.
  */
 const fs = require('fs');
 const path = require('path');
@@ -47,27 +47,22 @@ const vcap = {
 	}]
 };
 
-// --- the backend ---------------------------------------------------------
-fs.writeFileSync(
-	path.join(ROOT, 'default-env.json'),
-	JSON.stringify({ VCAP_SERVICES: vcap }, null, 2) + '\n'
-);
-
-// --- the approuter -------------------------------------------------------
+// One file at the project root, read by BOTH processes: the backend and the
+// approuter are started from here, and each picks out the part it needs.
 // forwardAuthToken passes the SAP token on to the backend, so CAP can check
 // the Approval scope for itself instead of trusting the approuter.
 fs.writeFileSync(
-	path.join(ROOT, 'approuter', 'default-env.json'),
+	path.join(ROOT, 'default-env.json'),
 	JSON.stringify({
 		destinations: [{ name: 'srv-api', url: 'http://localhost:4004', forwardAuthToken: true }],
 		VCAP_SERVICES: vcap
 	}, null, 2) + '\n'
 );
 
-console.log('\n  Wrote default-env.json and approuter/default-env.json');
+console.log('\n  Wrote default-env.json');
 console.log('  XSUAA tenant : ' + credentials.url);
 console.log('  clientid     : ' + credentials.clientid.slice(0, 12) + '...\n');
 console.log('  Now run the two servers in two terminals:');
 console.log('    npm run watch:hybrid');
-console.log('    cd approuter && npm start\n');
+console.log('    npm run approuter        <- from the PROJECT ROOT\n');
 console.log('  Then open http://localhost:5000\n');

@@ -15,7 +15,8 @@
   "scripts": {
     "start": "cds-serve",
     "watch": "cds watch",
-    "watch:hybrid": "cds watch --profile hybrid"
+    "watch:hybrid": "cds watch --profile hybrid",
+    "approuter": "node approuter/node_modules/@sap/approuter/approuter.js"
   },
   "cds": {
     "requires": {

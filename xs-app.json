@@ -21,20 +21,20 @@
     {
       "source": "^/supplier-portal/(.*)$",
       "target": "supplier-portal/$1",
-      "localDir": "../app",
+      "localDir": "app",
       "authenticationType": "none"
     },
     {
       "source": "^/supplier-approvals/(.*)$",
       "target": "supplier-approvals/$1",
-      "localDir": "../app",
+      "localDir": "app",
       "authenticationType": "xsuaa",
       "scope": "$XSAPPNAME.Approval"
     },
     {
       "source": "^/(.*)$",
       "target": "$1",
-      "localDir": "../app",
+      "localDir": "app",
       "authenticationType": "xsuaa"
     }
   ]
