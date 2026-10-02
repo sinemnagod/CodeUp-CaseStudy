@@ -1,6 +1,5 @@
 {
   "services": {
-
     "LaunchPage": {
       "adapter": {
         "config": {
@@ -38,11 +37,11 @@
         }
       }
     },
-
     "NavTargetResolution": {
-      "config": { "enableClientSideTargetResolution": true }
+      "config": {
+        "enableClientSideTargetResolution": true
+      }
     },
-
     "ClientSideTargetResolution": {
       "adapter": {
         "config": {
@@ -51,7 +50,10 @@
               "semanticObject": "SupplierPortal",
               "action": "display",
               "title": "Supplier Portal",
-              "signature": { "parameters": {}, "additionalParameters": "allowed" },
+              "signature": {
+                "parameters": {},
+                "additionalParameters": "allowed"
+              },
               "resolutionResult": {
                 "applicationType": "URL",
                 "url": "/supplier-portal/index.html"
@@ -61,13 +63,31 @@
               "semanticObject": "SupplierApprovals",
               "action": "display",
               "title": "Supplier Approvals",
-              "signature": { "parameters": {}, "additionalParameters": "allowed" },
+              "signature": {
+                "parameters": {},
+                "additionalParameters": "allowed"
+              },
               "resolutionResult": {
                 "applicationType": "URL",
                 "url": "/supplier-approvals/index.html"
               }
             }
           }
+        }
+      }
+    }
+  },
+  "renderers": {
+    "fiori2": {
+      "componentData": {
+        "config": {
+          "enableSignOut": true,
+          "enableUserImage": true,
+          "enableSearch": false,
+          "enableSetTheme": false,
+          "enableSetLanguage": false,
+          "enableHelp": false,
+          "enableRecentActivity": false
         }
       }
     }

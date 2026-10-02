@@ -820,3 +820,83 @@ approuter reads `VCAP_SERVICES` and `destinations`.
 common — they all served files from `localDir`. The two that worked
 (`/portal`, `/approval`) both used `destination` instead. Grouping the failures
 by what they shared pointed straight at `localDir`, with no guessing.
+
+---
+
+## 18. Showing the logged-in SAP user in the launchpad header
+
+The use case requires *"the authenticated (XSUAA) user's details must appear in
+the launchpad header"*. This took four attempts, and each failure was
+informative.
+
+### Attempt 1 — nothing appeared at all
+
+`/user-api/currentUser` returned 404. The approuter only exposes that endpoint
+if a route explicitly asks for the built-in service; otherwise the request
+falls through to the static file handler. Added as the **first** route:
+
+```json
+{ "source": "^/user-api(.*)$", "target": "$1",
+  "service": "sap-approuter-userapi", "authenticationType": "xsuaa" }
+```
+
+### Attempt 2 — `UserInfo` service was broken
+
+```
+TypeError: Cannot read properties of undefined (reading 'getSystem')
+```
+
+The sandbox `Container` adapter needs **`systemProperties`**. Without it the
+shell's own user service throws while starting. Adding it made
+`Container.getLogonSystem()` return real values.
+
+### Attempt 3 — the config approach is a dead end
+
+Even with `services.Container.adapter.config.userProfile.defaults` set,
+`Container.getUser()` still returned **`Default User`**, and no avatar control
+was created anywhere on the page.
+
+**Current SAPUI5 has removed the classic user avatar from the launchpad
+sandbox.** Setting the user profile in config cannot work, because nothing
+reads it any more. Worth knowing in general: when a documented config key
+appears to do nothing, check whether the control it feeds still exists.
+
+So the user item is added explicitly instead, through the renderer API:
+
+```js
+renderer.addHeaderEndItem({ id: "currentUserItem", icon: "...", press: ... },
+                          true, ["home", "app"], true);
+```
+
+### Attempt 4 — two objects with confusingly similar names
+
+```js
+Container.createRenderer("fiori2", true)   // -> the Shell CONTROL (has placeAt)
+Container.getRendererInternal("fiori2")    // -> the Renderer API  (has addHeaderEndItem)
+```
+
+Calling `addHeaderEndItem` on the first one throws, and because the call sat
+inside an `async` callback the error was swallowed and the page looked fine.
+
+### And then a timing problem
+
+With the right object the item was *created* — `getElementById` found it, with
+the correct tooltip — but it did not render. Adding it immediately after
+`placeAt` is too early: the shell rebuilds its header when it switches into the
+`home` state, discarding what was there. Deferring to the shell's
+`onAfterRendering` fixed it.
+
+**The debugging lesson:** "created but not visible" and "not created" are
+completely different problems. Checking
+`sap.ui.core.Element.getElementById("currentUserItem")` separated them in one
+step — without that, the obvious guess would have been that the code never ran.
+
+### What it looks like
+
+A person icon at the top right. Hovering shows `Full Name (email)`; clicking
+opens a popover with the name, the e-mail, and a **Sign out** button that goes
+to the approuter's `/do/logout`.
+
+That sign-out matters for the demo: changing a role collection has no effect
+until a **new** token is issued, so filming the "no role yet" scenario means
+logging out and back in.
