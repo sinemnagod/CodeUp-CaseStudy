@@ -900,3 +900,95 @@ to the approuter's `/do/logout`.
 That sign-out matters for the demo: changing a role collection has no effect
 until a **new** token is issued, so filming the "no role yet" scenario means
 logging out and back in.
+
+---
+
+## 19. The AI certificate check
+
+Files: `srv/ai.js` (reading the PDF and talking to the AI) and the
+`analyzeWithAI` action in `srv/approval-service.js`.
+
+### The flow
+
+```
+Approvals app
+  -> CAP action analyzeWithAI(ID)
+     -> read the PDF bytes out of the database
+     -> pdf-parse: bytes -> plain text
+     -> SAP Cloud SDK: POST through the destination "openrouter"
+        -> openrouter.ai  -> a language model
+     -> parse {"decision","reason"} out of the answer
+     -> write the decision through the SAME decide() helper the buttons use
+```
+
+### Why a destination, and not an API key in the code
+
+The application never sees the key. It says *"send this through the
+destination called `openrouter`"*, and BTP attaches the address and the
+`Authorization` header on the way out. So:
+
+- the key is never in the source and never in git;
+- it can be rotated in the cockpit with no code change and no redeploy;
+- test and production can use different keys with identical code.
+
+In the cockpit the key is an **additional property** named
+`URL.headers.Authorization`. The SAP Cloud SDK turns any `URL.headers.<name>`
+property into a real request header. The destination's own Authentication is
+`NoAuthentication`, which only means *BTP* adds no login of its own.
+
+### The AI decides, but it does not get special powers
+
+`analyzeWithAI` writes its result through the same `decide()` helper that
+`approveApplication` and `rejectApplication` use. So the AI is subject to every
+rule a human is: it cannot decide an application twice, and the decision is
+stamped with `aiDecision = true` so you can always tell who decided.
+
+That is the point worth making on camera: the AI is wired in as *another
+caller* of the existing rule, not as a second path around it.
+
+### Reading a media column is not an ordinary SELECT
+
+This cost a debugging round. The first version did:
+
+```js
+const application = await SELECT.one.from(Suppliers).where({ ID });
+// application.certificate -> undefined
+```
+
+A column annotated `@Core.MediaType` is **left out of a normal SELECT** — CAP
+assumes you want to stream it, not carry megabytes around in every query. It
+has to be asked for by name, and it then arrives as a **Readable stream**:
+
+```js
+const stored = await SELECT.one.from(Suppliers).columns('certificate').where({ ID });
+const buffer = await readStream(stored.certificate);   // 18848 bytes, starts "%PDF"
+```
+
+Diagnosing it took one throwaway script that printed the *type* of what came
+back from each variant. "It is undefined" and "it is a stream, not a Buffer"
+are both invisible if you only look at whether the call threw.
+
+### Making a language model's answer safe to use
+
+Models wrap JSON in prose, or in ```` ```json ```` fences, or add "Sure, here
+you go!". So the answer is never trusted as-is:
+
+1. find the first `{...}` block with a regular expression;
+2. try to `JSON.parse` it;
+3. accept `decision` **only** if it is exactly `Approved` or `Rejected`;
+4. anything else -> `AI_UNCLEAR_ANSWER`, and the approver decides by hand.
+
+Tested against five shapes of answer, including chatty preambles, fenced JSON
+and a model that invented `"decision":"maybe"`. The last two correctly produce
+no decision rather than a wrong one.
+
+Also deliberate: `temperature: 0` so the same certificate gives the same
+verdict, and only the first 6000 characters are sent, because a certificate's
+dates are near the top and tokens cost money.
+
+### When the AI refuses to answer
+
+A scanned certificate — a photo saved as PDF — has no text layer. `pdf-parse`
+returns almost nothing, and rather than let the model hallucinate a verdict
+from an empty page, the backend stops with `AI_PDF_UNREADABLE`. Refusing to
+guess is a feature here, not a limitation.

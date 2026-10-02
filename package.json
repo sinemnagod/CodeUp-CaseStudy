@@ -4,6 +4,8 @@
   "private": true,
   "description": "CodeUp internship use case - Supplier Onboarding & Approval",
   "dependencies": {
+    "@sap-cloud-sdk/connectivity": "^4.9.1",
+    "@sap-cloud-sdk/http-client": "^4.9.1",
     "@sap/cds": "^10",
     "@sap/xssec": "^4.15.0",
     "bcryptjs": "^3.0.3",

@@ -47,6 +47,21 @@ const vcap = {
 	}]
 };
 
+// The destination service is optional: it is only needed once you add the AI
+// feature. Save its service key as destination-key.json next to this one.
+const DEST_KEY_FILE = path.join(ROOT, 'destination-key.json');
+if (fs.existsSync(DEST_KEY_FILE)) {
+	const destRaw = JSON.parse(fs.readFileSync(DEST_KEY_FILE, 'utf8'));
+	const destCredentials = destRaw.credentials || destRaw;
+	vcap.destination = [{
+		label: 'destination',
+		tags: ['destination'],
+		name: 'codeup-destination',
+		instance_name: 'codeup-destination',
+		credentials: destCredentials
+	}];
+}
+
 // One file at the project root, read by BOTH processes: the backend and the
 // approuter are started from here, and each picks out the part it needs.
 // forwardAuthToken passes the SAP token on to the backend, so CAP can check
@@ -61,7 +76,8 @@ fs.writeFileSync(
 
 console.log('\n  Wrote default-env.json');
 console.log('  XSUAA tenant : ' + credentials.url);
-console.log('  clientid     : ' + credentials.clientid.slice(0, 12) + '...\n');
+console.log('  clientid     : ' + credentials.clientid.slice(0, 12) + '...');
+console.log('  destination service : ' + (vcap.destination ? 'bound' : 'not bound (only needed for the AI feature)') + '\n');
 console.log('  Now run the two servers in two terminals:');
 console.log('    npm run watch:hybrid');
 console.log('    npm run approuter        <- from the PROJECT ROOT\n');

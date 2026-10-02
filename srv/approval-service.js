@@ -1,4 +1,14 @@
 const cds = require('@sap/cds');
+const { analyzeCertificate } = require('./ai');
+
+/** Collects a readable stream into a single Buffer. */
+async function readStream(stream) {
+	if (!stream) { return null; }
+	if (Buffer.isBuffer(stream)) { return stream; }
+	const chunks = [];
+	for await (const chunk of stream) { chunks.push(chunk); }
+	return Buffer.concat(chunks);
+}
 
 module.exports = class ApprovalService extends cds.ApplicationService {
 
@@ -43,8 +53,37 @@ module.exports = class ApprovalService extends cds.ApplicationService {
 			return decide(req, req.data.ID, 'Rejected', req.data.note, req.data.editableFields, false);
 		});
 
-		// The AI decision is wired up in the next step of the project.
-		this.on('analyzeWithAI', (req) => req.reject(501, 'AI_NOT_CONFIGURED'));
+		/**
+		 * Hands the decision to the AI: it reads the uploaded PDF certificate
+		 * and approves or rejects on its own.
+		 *
+		 * The decision is written through the very same `decide()` helper the
+		 * human buttons use, so the AI cannot bypass any rule - it still cannot
+		 * decide an application twice, and `aiDecision` records that it was
+		 * the machine and not a person.
+		 */
+		this.on('analyzeWithAI', async (req) => {
+			const application = await SELECT.one.from(Suppliers).where({ ID: req.data.ID });
+			if (!application) return req.reject(404, 'APPLICATION_NOT_FOUND');
+			if (application.status !== 'Submitted') return req.reject(409, 'ALREADY_DECIDED');
+
+			// A column annotated with @Core.MediaType is left out of an ordinary
+			// SELECT and has to be asked for by name - and it then arrives as a
+			// stream, not as a Buffer.
+			const stored = await SELECT.one.from(Suppliers).columns('certificate').where({ ID: application.ID });
+			const certificateBuffer = await readStream(stored && stored.certificate);
+
+			let result;
+			try {
+				result = await analyzeCertificate(application, certificateBuffer);
+			} catch (error) {
+				// analyzeCertificate throws our own error codes
+				return req.reject(502, error.message);
+			}
+
+			await decide(req, application.ID, result.decision, result.reason, null, true);
+			return result;
+		});
 
 		return super.init();
 	}
