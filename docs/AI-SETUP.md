@@ -100,16 +100,35 @@ them yourself through the portal.
 
 ---
 
+## Verify it from the command line first
+
+Before clicking anything in the app:
+
+```bash
+node scripts/check-ai.js
+```
+
+It checks the service binding, reads the destination out of BTP, and makes one
+real call — printing the actual reason for any failure instead of the polite
+message the UI shows. If the model id is dead it even lists the ones that exist
+right now.
+
+---
+
 ## Choosing the model
 
 The default is a free model:
 
 ```
-meta-llama/llama-3.3-70b-instruct:free
+google/gemma-4-31b-it:free
 ```
 
-Free models are rate-limited and occasionally unavailable. To switch, set an
-environment variable before starting the backend — no code change:
+**Free model ids on OpenRouter are not stable** — one that worked last month can
+be retired, and OpenRouter then answers **404**, which looks like a wrong URL
+but is not. `node scripts/check-ai.js` tells you which it is.
+
+To switch, set an environment variable before starting the backend — no code
+change:
 
 ```bash
 AI_MODEL="openai/gpt-4o-mini" npm run watch:hybrid
@@ -127,6 +146,8 @@ cent per check.
 | `The AI service could not be reached...` | the destination is missing, misnamed, or the key in it is wrong. Check the backend terminal — it logs the real reason after `[ai] call failed:` |
 | `The certificate contains no readable text...` | the PDF is a scanned image with no text layer. Expected behaviour — we refuse to guess |
 | `The AI did not give a clear answer...` | the model replied with something that was not the JSON we asked for. Try another model |
+| `The configured AI model no longer exists...` | a 404 from OpenRouter: the model id is dead. Run `node scripts/check-ai.js` for current ids |
+| `OpenRouter rejected the API key...` | the `URL.headers.Authorization` property is wrong. It must read `Bearer sk-or-v1-...` |
 
 A useful check from the backend terminal: if `[ai] call failed` mentions
 `401`, the API key is wrong; `404` means the URL is wrong; anything about

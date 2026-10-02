@@ -10,9 +10,13 @@ const { executeHttpRequest } = require('@sap-cloud-sdk/http-client');
  * in git, and can be rotated in the BTP cockpit without touching the app.
  */
 
-// Which model to ask. Overridable from the destination, so the model can be
-// changed in the cockpit without a code change.
-const DEFAULT_MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
+// Which model to ask. Override with the AI_MODEL environment variable.
+//
+// Free models on OpenRouter come and go: an id that worked last month can be
+// retired, and OpenRouter then answers 404 "No endpoints found". If the AI
+// stops working for no apparent reason, check this id first - run
+// `node scripts/check-ai.js`, which lists the ids that exist today.
+const DEFAULT_MODEL = 'google/gemma-4-31b-it:free';
 const DESTINATION = 'openrouter';
 
 // PDFs can be long and we pay per token, so only the beginning is sent.
@@ -133,8 +137,18 @@ async function analyzeCertificate(application, certificateBuffer) {
 			{ fetchCsrfToken: false }
 		);
 	} catch (error) {
-		// Most likely: the destination does not exist, or the key in it is wrong.
-		console.error('[ai] call failed:', error.message);
+		// The SAP Cloud SDK only puts the status code in error.message, which is
+		// nowhere near enough to debug with. The service's own explanation is in
+		// the response body, so log that too.
+		const status = error.response?.status;
+		const body = error.response?.data;
+		console.error('[ai] call failed:', error.message,
+			body ? '\n[ai] service said: ' + JSON.stringify(body).slice(0, 500) : '');
+
+		// 404 from OpenRouter means the *model id* is unknown, not the URL -
+		// the endpoint itself answers 401 when it is reachable but unauthorised.
+		if (status === 404) { throw new Error('AI_MODEL_UNKNOWN'); }
+		if (status === 401 || status === 403) { throw new Error('AI_KEY_REJECTED'); }
 		throw new Error('AI_UNAVAILABLE');
 	}
 
