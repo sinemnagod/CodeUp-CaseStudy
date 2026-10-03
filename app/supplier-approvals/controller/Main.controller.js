@@ -66,11 +66,7 @@ sap.ui.define([
 		// ------------------------------------------------------------------
 
 		onTabSelect: function (event) {
-			// SegmentedButton reports the chosen item; IconTabBar reported the key
-			// directly. Accept either, so swapping the control back is a one-liner.
-			const item = event.getParameter("item");
-			const key = event.getParameter("key") || (item && item.getKey());
-			this.getView().getModel("ui").setProperty("/statusFilter", key);
+			this.getView().getModel("ui").setProperty("/statusFilter", event.getParameter("key"));
 			this._applyFilters();
 		},
 
