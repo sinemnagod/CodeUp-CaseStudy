@@ -101,10 +101,15 @@
 	 * so translating once on onAfterRendering is too early - the tiles do not
 	 * exist yet. Keep looking briefly until both are there.
 	 */
+	let tileLoopRunning = false;
 	function translateTilesWhenReady(texts, attemptsLeft) {
-		if (translateTiles(texts) >= 2) { return; }
+		if (translateTiles(texts) >= 2) { tileLoopRunning = false; return; }
+		if (tileLoopRunning && attemptsLeft === 40) { return; }   // a loop is already going
+		tileLoopRunning = true;
 		if (attemptsLeft > 0) {
 			setTimeout(function () { translateTilesWhenReady(texts, attemptsLeft - 1); }, 250);
+		} else {
+			tileLoopRunning = false;
 		}
 	}
 
@@ -182,6 +187,37 @@
 		}, true, ["home", "app"], true);
 	}
 
+	/**
+	 * Makes sure the user item is actually on screen, and puts it back if it
+	 * is not.
+	 *
+	 * Adding it once on the first onAfterRendering is not reliable: sometimes
+	 * the header is not ready yet, so the item is created but never drawn, and
+	 * a later re-render of the shell can drop it again. So we check whether it
+	 * has a DOM element, re-create it when it does not, and keep checking for
+	 * a few seconds.
+	 */
+	let userItemLoopRunning = false;
+	function ensureUserInHeader(api, user, texts, attemptsLeft) {
+		const existing = sap.ui.core.Element.getElementById("currentUserItem");
+
+		if (existing && existing.getDomRef()) {
+			userItemLoopRunning = false;
+			return;                       // it is there and visible, nothing to do
+		}
+		if (existing) {
+			existing.destroy();           // created but never rendered - start over
+		}
+		addUserToHeader(api, user, texts);
+
+		if (attemptsLeft > 0) {
+			userItemLoopRunning = true;
+			setTimeout(function () { ensureUserInHeader(api, user, texts, attemptsLeft - 1); }, 250);
+		} else {
+			userItemLoopRunning = false;
+		}
+	}
+
 	(async function startLaunchpad() {
 		const config = await (await fetch("appconfig/fioriSandboxConfig.json")).json();
 		const texts = await loadTexts();
@@ -233,19 +269,19 @@
 			// Both the tile texts and the user item have to wait until the shell
 			// has rendered: anything added earlier is built and then discarded
 			// when the shell switches into its "home" state.
-			let done = false;
+			//
+			// This runs on EVERY render, not just the first, because the shell
+			// rebuilds its header when you come back from an app. Both helpers
+			// are idempotent and stop as soon as there is nothing left to do.
 			shell.addEventDelegate({
 				onAfterRendering: async function () {
-					if (done) { return; }
-					done = true;
-
 					translateTilesWhenReady(texts, 40);   // up to ~10 seconds
 
-					if (user) {
+					if (user && !userItemLoopRunning) {
 						const api = Container.getRendererInternal
 							? Container.getRendererInternal("fiori2")
 							: Container.getRenderer("fiori2");
-						addUserToHeader(await Promise.resolve(api), user, texts);
+						ensureUserInHeader(await Promise.resolve(api), user, texts, 40);
 					}
 				}
 			});

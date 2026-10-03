@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Signed out</title>
+
+	<script id="sap-ui-bootstrap"
+		src="https://ui5.sap.com/resources/sap-ui-core.js"
+		data-sap-ui-theme="sap_horizon"
+		data-sap-ui-libs="sap.m"
+		data-sap-ui-compat-version="edge"
+		data-sap-ui-async="true"
+		data-sap-ui-frame-options="trusted">
+	</script>
+
+	<script>
+	/*
+	 * Where the approuter sends you after signing out.
+	 *
+	 * This page is deliberately PUBLIC (see xs-app.json). Sending a freshly
+	 * logged-out user straight back to a protected page looks broken: the
+	 * approuter immediately bounces them to SAP, SAP may still have a valid
+	 * single-sign-on session, and they land back on the launchpad looking as
+	 * though the logout did nothing. Landing somewhere public makes the result
+	 * unambiguous, and the next sign-in starts clean.
+	 */
+	async function loadTexts() {
+		const override = new URLSearchParams(location.search).get("sap-language");
+		const language = (override || navigator.language || "en").slice(0, 2).toLowerCase();
+		const file = language === "tr" ? "i18n/launchpad_tr.properties" : "i18n/launchpad.properties";
+		const texts = {};
+		try {
+			const body = await (await fetch(file)).text();
+			body.split("\n").forEach(function (line) {
+				const trimmed = line.trim();
+				if (!trimmed || trimmed.startsWith("#")) { return; }
+				const separator = trimmed.indexOf("=");
+				if (separator > 0) {
+					texts[trimmed.slice(0, separator).trim()] = trimmed.slice(separator + 1).trim();
+				}
+			});
+		} catch (error) { /* fall back to the defaults below */ }
+		return texts;
+	}
+
+	sap.ui.getCore().attachInit(async function () {
+		const texts = await loadTexts();
+		sap.ui.require([
+			"sap/m/App", "sap/m/Page", "sap/m/IllustratedMessage", "sap/m/Button"
+		], function (App, Page, IllustratedMessage, Button) {
+			const message = new IllustratedMessage({
+				illustrationType: "sapIllus-SuccessCheckMark",
+				title: texts.signedOutTitle || "You are signed out",
+				description: texts.signedOutText || "You can close this tab, or sign in again.",
+				additionalContent: [
+					new Button({
+						text: texts.signInAgain || "Sign in again",
+						type: "Emphasized",
+						icon: "sap-icon://key",
+						press: function () { window.location.href = "/"; }
+					})
+				]
+			});
+			new App({ pages: [ new Page({ showHeader: false, content: [message] }) ] }).placeAt("content");
+		});
+	});
+	</script>
+</head>
+
+<body class="sapUiBody">
+	<div id="content"></div>
+</body>
+</html>

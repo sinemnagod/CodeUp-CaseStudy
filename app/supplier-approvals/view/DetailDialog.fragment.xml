@@ -34,7 +34,8 @@
 
 				<!-- process flow, same three steps the supplier sees -->
 				<Title text="{i18n>statusTitle}" level="H3" class="sapUiMediumMarginTop sapUiSmallMarginBottom"/>
-				<pf:ProcessFlow id="detailProcessFlow" foldedCorners="false" scrollable="false" showLabels="true">
+				<pf:ProcessFlow id="detailProcessFlow" foldedCorners="false" scrollable="false" showLabels="true"
+						wheelZoomable="false">
 					<pf:lanes>
 						<pf:ProcessFlowLaneHeader laneId="lane1" position="0"
 							iconSrc="sap-icon://create-form" text="{i18n>stepSubmitted}" state="{flow>/lane1}"/>

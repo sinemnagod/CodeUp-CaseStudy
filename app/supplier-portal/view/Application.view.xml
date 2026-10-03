@@ -166,7 +166,8 @@
 				</HBox>
 
 				<Panel headerText="{i18n>statusTitle}" class="sapUiSmallMarginTop">
-					<pf:ProcessFlow id="processFlow" foldedCorners="false" scrollable="false" showLabels="true">
+					<pf:ProcessFlow id="processFlow" foldedCorners="false" scrollable="false" showLabels="true"
+						wheelZoomable="false">
 						<pf:lanes>
 							<pf:ProcessFlowLaneHeader laneId="lane1" position="0"
 								iconSrc="sap-icon://create-form" text="{i18n>stepSubmitted}" state="{flow>/lane1}"/>

@@ -1257,3 +1257,53 @@ classes** (`sapUiSmallMarginTop`, `sapUiMediumMargin`, …), which the use case
 links to in its own Resources section. There is no stylesheet in this project
 and no inline `style=` attribute anywhere — checked with a search over the
 whole `app/` folder.
+
+---
+
+## 23. Three UI bugs and what caused them
+
+### The process flow resized while scrolling over it
+
+`sap.suite.ui.commons.ProcessFlow` has **`wheelZoomable`, and it defaults to
+`true`**. The mouse wheel zooms the diagram instead of scrolling the page, so
+the flow grew and shrank under the cursor.
+
+```xml
+<pf:ProcessFlow ... wheelZoomable="false">
+```
+
+Found by listing the control's properties at runtime rather than reading docs:
+`Object.keys(control.getMetadata().getAllProperties())`. Useful habit — it
+shows what a control can actually do in the version you have.
+
+### The user icon in the launchpad header came and went
+
+It was added once, on the shell's first `onAfterRendering`. Two ways that
+fails: the header is sometimes not ready yet, so the item is created but never
+drawn; and the shell rebuilds its header when you return from an app, dropping
+it again.
+
+Replaced with an idempotent `ensureUserInHeader()` that runs on **every**
+render: if the item exists and has a DOM element it does nothing; if it exists
+without one it destroys and re-creates it; otherwise it adds it — and it keeps
+checking for a few seconds.
+
+> "Do it once at startup" is fragile in any framework that re-renders. "Make
+> sure it is true, repeatedly and cheaply" survives.
+
+### Signing out did not look like signing out
+
+The chain was right — `/do/logout` cleared `JSESSIONID` and redirected to
+SAP's `logout.do`. The problem was where it landed: **back on `/`**, which
+needs a session. The approuter bounced straight to SAP, SAP's single-sign-on
+session was often still alive, and the user was silently signed back in and
+returned to the launchpad — looking as though nothing happened.
+
+Logout now lands on `/logged-out.html`, a deliberately **public** page (its
+own route with `authenticationType: "none"`, plus one for `/i18n/**` so it can
+read its texts). It says plainly that you are signed out and offers a button
+to sign in again.
+
+> Redirecting a just-logged-out user to a protected page re-triggers the very
+> single-sign-on you were trying to escape. A logout has to land somewhere
+> public or it cannot be seen to have worked.

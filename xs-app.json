@@ -3,7 +3,7 @@
   "authenticationMethod": "route",
   "logout": {
     "logoutEndpoint": "/do/logout",
-    "logoutPage": "/"
+    "logoutPage": "/logged-out.html"
   },
   "routes": [
     {
@@ -38,6 +38,18 @@
       "localDir": "app",
       "authenticationType": "xsuaa",
       "scope": "$XSAPPNAME.Approval"
+    },
+    {
+      "source": "^/logged-out.html$",
+      "target": "logged-out.html",
+      "localDir": "app",
+      "authenticationType": "none"
+    },
+    {
+      "source": "^/i18n/(.*)$",
+      "target": "i18n/$1",
+      "localDir": "app",
+      "authenticationType": "none"
     },
     {
       "source": "^/(.*)$",
