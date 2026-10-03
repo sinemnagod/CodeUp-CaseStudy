@@ -1307,3 +1307,25 @@ to sign in again.
 > Redirecting a just-logged-out user to a protected page re-triggers the very
 > single-sign-on you were trying to escape. A logout has to land somewhere
 > public or it cannot be seen to have worked.
+
+### The blue underline under the active tab — tried, and reverted
+
+`IconTabBar` / `IconTabHeader` mark the active tab with a blue underline drawn
+by the **theme**, not by a property, so it cannot be removed without custom
+CSS. `showSelection="false"` looks like the answer and is not: it is
+deprecated, and setting it at runtime left the underline exactly where it was.
+
+The no-CSS alternative is a control that shows selection differently, so the
+tabs were swapped for a `sap.m.SegmentedButton` — active choice as a pressed
+button, no underline.
+
+**That was a bad trade and it was reverted.** `SegmentedButtonItem` has no
+`iconColor`, so the four filters lost the colour coding that carries their
+meaning: orange for pending, green for approved, red for rejected. Removing a
+decorative line at the cost of information the user actually reads is the
+wrong way round.
+
+> The lesson is about judgement, not UI5: when the fix for a cosmetic
+> complaint costs real function, the complaint is the thing to drop. It is
+> also why the swap was written to be reversible — `onTabSelect` accepted the
+> key from either control — so undoing it was one `git revert`.
