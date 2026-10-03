@@ -2,64 +2,73 @@
 	controllerName="codeup.supplierportal.controller.Register"
 	xmlns="sap.m"
 	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:f="sap.f"
 	displayBlock="true">
 
 	<Page showHeader="false" backgroundDesign="List">
-		<VBox height="100%" justifyContent="Center" alignItems="Center">
-			<VBox width="24rem" class="sapUiLargeMargin">
 
-				<Title text="{i18n>appTitle}" level="H1" titleStyle="H2"/>
-				<Text text="{i18n>registerTitle}" class="sapUiSmallMarginTop sapUiMediumMarginBottom"/>
+		<FlexBox height="100%" justifyContent="Center" alignItems="Center" direction="Column">
 
-				<Label text="{i18n>emailLabel}" labelFor="email" required="true"/>
-				<Input id="email"
-					value="{ui>/email}"
-					type="Email"
-					placeholder="{i18n>emailPlaceholder}"
-					submit=".onRegister"
-					class="sapUiSmallMarginBottom"/>
+			<f:Card width="24rem">
+				<f:content>
+					<VBox class="sapUiMediumMargin">
 
-				<Label text="{i18n>passwordLabel}" labelFor="password" required="true"/>
-				<HBox alignItems="Center">
-					<Input id="password"
-						value="{ui>/password}"
-						type="{ui>/passwordType}"
-						liveChange=".onPasswordLiveChange"
-						submit=".onRegister">
-						<layoutData><FlexItemData growFactor="1"/></layoutData>
-					</Input>
-					<Button icon="{ui>/passwordIcon}" type="Transparent" press=".onTogglePassword"/>
-				</HBox>
+						<Title text="{i18n>appTitle}" level="H1" titleStyle="H3"/>
+						<Text text="{i18n>registerTitle}" class="sapUiTinyMarginTop sapUiMediumMarginBottom"/>
 
-				<!--
-					The five rules. They appear as soon as the user starts typing
-					and each one turns green the moment it is satisfied.
-					ObjectStatus already draws green/grey text and an icon for us,
-					so no custom styling is needed.
-				-->
-				<VBox visible="{ui>/rulesVisible}" class="sapUiSmallMarginTop sapUiSmallMarginBottom">
-					<ObjectStatus text="{i18n>pwRuleLength}"  state="{ui>/rules/length/state}"  icon="{ui>/rules/length/icon}"/>
-					<ObjectStatus text="{i18n>pwRuleUpper}"   state="{ui>/rules/upper/state}"   icon="{ui>/rules/upper/icon}"/>
-					<ObjectStatus text="{i18n>pwRuleLower}"   state="{ui>/rules/lower/state}"   icon="{ui>/rules/lower/icon}"/>
-					<ObjectStatus text="{i18n>pwRuleDigit}"   state="{ui>/rules/digit/state}"   icon="{ui>/rules/digit/icon}"/>
-					<ObjectStatus text="{i18n>pwRuleSpecial}" state="{ui>/rules/special/state}" icon="{ui>/rules/special/icon}"/>
-				</VBox>
+						<Label text="{i18n>emailLabel}" labelFor="email" required="true"/>
+						<Input id="email"
+							value="{ui>/email}"
+							type="Email"
+							placeholder="{i18n>emailPlaceholder}"
+							submit=".onRegister"
+							class="sapUiSmallMarginBottom"/>
 
-				<Button text="{i18n>registerButton}"
-					type="Emphasized"
-					icon="sap-icon://add-employee"
-					press=".onRegister"
-					enabled="{ui>/canRegister}"
-					busy="{ui>/busy}"
-					class="sapUiSmallMarginTop"/>
+						<Label text="{i18n>passwordLabel}" labelFor="password" required="true"/>
+						<HBox alignItems="Center">
+							<Input id="password"
+								value="{ui>/password}"
+								type="{ui>/passwordType}"
+								liveChange=".onPasswordLiveChange"
+								submit=".onRegister">
+								<layoutData><FlexItemData growFactor="1"/></layoutData>
+							</Input>
+							<Button icon="{ui>/passwordIcon}" type="Transparent" press=".onTogglePassword"/>
+						</HBox>
 
-				<Button text="{i18n>toLoginLink}"
-					type="Transparent"
-					press=".onGoToLogin"
-					class="sapUiSmallMarginTop"/>
+						<!--
+							The five rules. They appear as soon as the user starts typing
+							and each one turns green the moment it is satisfied.
+							ObjectStatus already draws green/grey text and an icon for us,
+							so no custom styling is needed.
+						-->
+						<VBox visible="{ui>/rulesVisible}" class="sapUiSmallMarginTop sapUiSmallMarginBottom">
+							<ObjectStatus text="{i18n>pwRuleLength}"  state="{ui>/rules/length/state}"  icon="{ui>/rules/length/icon}"/>
+							<ObjectStatus text="{i18n>pwRuleUpper}"   state="{ui>/rules/upper/state}"   icon="{ui>/rules/upper/icon}"/>
+							<ObjectStatus text="{i18n>pwRuleLower}"   state="{ui>/rules/lower/state}"   icon="{ui>/rules/lower/icon}"/>
+							<ObjectStatus text="{i18n>pwRuleDigit}"   state="{ui>/rules/digit/state}"   icon="{ui>/rules/digit/icon}"/>
+							<ObjectStatus text="{i18n>pwRuleSpecial}" state="{ui>/rules/special/state}" icon="{ui>/rules/special/icon}"/>
+						</VBox>
 
-			</VBox>
-		</VBox>
+						<Button text="{i18n>registerButton}"
+							type="Emphasized"
+							icon="sap-icon://add-employee"
+							press=".onRegister"
+							enabled="{ui>/canRegister}"
+							busy="{ui>/busy}"
+							busyIndicatorDelay="0"
+							class="sapUiMediumMarginTop"/>
+
+						<Button text="{i18n>toLoginLink}"
+							type="Transparent"
+							press=".onGoToLogin"
+							class="sapUiTinyMarginTop"/>
+
+					</VBox>
+				</f:content>
+			</f:Card>
+
+		</FlexBox>
 	</Page>
 
 </mvc:View>

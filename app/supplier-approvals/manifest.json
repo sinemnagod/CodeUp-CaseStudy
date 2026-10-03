@@ -1,28 +1,34 @@
 {
   "_version": "1.60.0",
-
   "sap.app": {
     "id": "codeup.supplierapprovals",
     "type": "application",
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
-    "applicationVersion": { "version": "1.0.0" },
-
+    "applicationVersion": {
+      "version": "1.0.0"
+    },
     "dataSources": {
       "approvalService": {
         "uri": "/approval/",
         "type": "OData",
-        "settings": { "odataVersion": "4.0" }
+        "settings": {
+          "odataVersion": "4.0"
+        }
       }
     }
   },
-
   "sap.ui": {
     "technology": "UI5",
-    "icons": { "icon": "sap-icon://task" },
-    "deviceTypes": { "desktop": true, "tablet": true, "phone": true }
+    "icons": {
+      "icon": "sap-icon://task"
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
   },
-
   "sap.ui5": {
     "dependencies": {
       "minUI5Version": "1.120.0",
@@ -30,20 +36,22 @@
         "sap.ui.core": {},
         "sap.m": {},
         "sap.ui.layout": {},
-        "sap.suite.ui.commons": {}
+        "sap.suite.ui.commons": {},
+        "sap.f": {}
       }
     },
-
     "models": {
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
           "bundleName": "codeup.supplierapprovals.i18n.i18n",
-          "supportedLocales": ["", "tr"],
+          "supportedLocales": [
+            "",
+            "tr"
+          ],
           "fallbackLocale": ""
         }
       },
-
       "": {
         "dataSource": "approvalService",
         "settings": {
@@ -53,14 +61,12 @@
         }
       }
     },
-
     "rootView": {
       "viewName": "codeup.supplierapprovals.view.App",
       "type": "XML",
       "id": "rootView",
       "async": true
     },
-
     "routing": {
       "config": {
         "routerClass": "sap.m.routing.Router",
@@ -72,10 +78,17 @@
         "async": true
       },
       "routes": [
-        { "pattern": "", "name": "main", "target": "main" }
+        {
+          "pattern": "",
+          "name": "main",
+          "target": "main"
+        }
       ],
       "targets": {
-        "main": { "id": "main", "name": "Main" }
+        "main": {
+          "id": "main",
+          "name": "Main"
+        }
       }
     }
   }

@@ -3,26 +3,31 @@
 	xmlns="sap.m"
 	xmlns:mvc="sap.ui.core.mvc"
 	xmlns:core="sap.ui.core"
+	xmlns:f="sap.f"
 	xmlns:form="sap.ui.layout.form"
 	xmlns:u="sap.ui.unified"
 	xmlns:pf="sap.suite.ui.commons"
 	displayBlock="true">
 
-	<Page backgroundDesign="List">
+	<f:DynamicPage toggleHeaderOnTitleClick="false" headerExpanded="true">
 
-		<customHeader>
-			<Bar>
-				<contentLeft>
-					<Title text="{i18n>appTitle}" level="H1" titleStyle="H5"/>
-				</contentLeft>
-				<contentRight>
+		<f:title>
+			<f:DynamicPageTitle>
+				<f:heading>
+					<Title text="{i18n>appTitle}" level="H1"/>
+				</f:heading>
+				<f:expandedContent>
+					<Text text="{i18n>appDescription}"/>
+				</f:expandedContent>
+				<f:actions>
 					<ObjectStatus text="{ui>/email}" icon="sap-icon://person-placeholder"/>
 					<Button text="{i18n>logoutButton}" icon="sap-icon://log" type="Transparent" press=".onLogout"/>
-				</contentRight>
-			</Bar>
-		</customHeader>
+				</f:actions>
+			</f:DynamicPageTitle>
+		</f:title>
 
-		<content>
+		<f:content>
+			<VBox>
 
 			<!-- ================= FORM: first application or re-apply ================= -->
 			<VBox visible="{ui>/formVisible}" class="sapUiSmallMargin">
@@ -183,7 +188,8 @@
 
 			</VBox>
 
-		</content>
-	</Page>
+			</VBox>
+		</f:content>
+	</f:DynamicPage>
 
 </mvc:View>

@@ -1198,3 +1198,62 @@ codes. Fixed with `formatCountry` / `formatCategory`.
 `formatCountry` returns an unknown code unchanged rather than a missing-text
 warning, so adding a country to the dropdown without adding its translation
 degrades quietly instead of showing `[countryXX]` to a user.
+
+---
+
+## 22. Improving the look without writing any CSS
+
+### Can the launchpad tiles be centred? No.
+
+Checked directly rather than guessed — the controls the shell builds expose no
+alignment at all:
+
+| control | alignment properties |
+|---|---|
+| `DashboardGroupsContainer` | none |
+| `TileContainer` | none |
+| `Page` | `titleAlignment` only |
+
+The tile area is laid out by the shell, so centring it needs a CSS rule, which
+the use case forbids. It is also the wrong goal: tiles starting top-left **is**
+the standard Fiori Launchpad, and the point of the no-CSS rule is to look
+standard.
+
+**Inside our own apps there is no such limit**, because we build those controls.
+
+### Centring with no CSS
+
+```xml
+<FlexBox height="100%" justifyContent="Center" alignItems="Center" direction="Column">
+```
+
+`height`, `justifyContent` and `alignItems` are ordinary control properties;
+UI5 writes the flexbox rules. Measured on a 1400x860 viewport: the login card
+sits at x 508-892 (centre 700 = 1400/2) and y 220-640 (centre 430 = 860/2).
+
+### What actually makes a UI5 app look professional
+
+Not styling — **using the right controls**:
+
+| instead of | use | why |
+|---|---|---|
+| `Page` + a `Bar` header | `sap.f.DynamicPage` | the real Fiori header: title, subtitle, actions, collapses on scroll |
+| `IconTabBar` wrapping the table | `IconTabHeader` in the page header | tabs in the header, table in the content, so the table keeps its own scrolling |
+| `noDataText="..."` | `sap.m.IllustratedMessage` | an SAP illustration and a headline instead of grey text |
+| a bare `VBox` of inputs | `sap.f.Card` | a real card surface with elevation |
+| `Text` in the first column | `ObjectIdentifier` | the standard emphasis for the identifying column |
+
+Plus `sticky="ColumnHeaders,HeaderToolbar"` on the table, so the headers and
+toolbar stay put while scrolling — one attribute.
+
+This is the `sap.f.DynamicPage` "list report" pattern, the same shape SAP's own
+applications use. Worth naming it in the video: it shows the layout was chosen,
+not improvised.
+
+### Keeping the no-CSS promise honest
+
+Everything above is a control property or one of SAP's **predefined spacing
+classes** (`sapUiSmallMarginTop`, `sapUiMediumMargin`, …), which the use case
+links to in its own Resources section. There is no stylesheet in this project
+and no inline `style=` attribute anywhere — checked with a search over the
+whole `app/` folder.
