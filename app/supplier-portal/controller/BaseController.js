@@ -40,6 +40,11 @@ sap.ui.define([
 
 		toast: function (key) {
 			MessageToast.show(this.getText(key));
+		},
+
+		/** "Services" is a stored code; the user should read "Hizmetler". */
+		formatCategory: function (category) {
+			return category ? this.getText("category" + category) : "";
 		}
 	});
 });

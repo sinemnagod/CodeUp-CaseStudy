@@ -1118,3 +1118,83 @@ configuration, not a constant. (§19)
 **The AI is another caller of the rule, not a way around it.** `analyzeWithAI`
 writes through the very same `decide()` helper the human buttons use, so it
 inherits every check and gets stamped `aiDecision = true`. (§19)
+
+---
+
+## 21. Audit against the use case, and the four things it found
+
+A deliberate pass over every requirement in the PDF, a day before recording.
+Three of the four findings were things that *looked* finished.
+
+### a) The launchpad had hard-coded English in it
+
+The two UI5 apps were clean — 77 and 70 i18n keys, identical sets in both
+languages, nothing referenced-but-missing. The **launchpad** was not: tile
+titles and subtitles sat in `fioriSandboxConfig.json`, and "Signed in" /
+"Sign out" were string literals in `index.html`.
+
+The fix needed four attempts, and the reason is worth knowing:
+
+1. Put the texts in `app/i18n/launchpad.properties` (+ `_tr`) and translate the
+   config object before the shell starts. **Did not work.**
+2. Honour `?sap-language=` as well as `navigator.language`. Still did not work.
+3. The cause, found by watching the network tab: **the sandbox fetches
+   `appconfig/fioriSandboxConfig.json` itself** — 22 times — and that pristine
+   copy overrides anything set in `window["sap-ushell-config"]`. The shell says
+   so in a console message that is easy to dismiss as noise:
+   *"Merging of arrays is not supported for config key groups. Overriding the
+   whole array."*
+4. Deleting the tiles from the file so they could live in JavaScript instead.
+   **Worse** — the sandbox then falls back to its own demo tiles
+   (`Default Application`, `RTA Demo App`, …).
+
+So the file has to keep the tile definitions, and the texts are replaced on
+the **rendered controls** afterwards. The tiles are `sap.m.GenericTile`, and
+each one's binding context carries `originalTileId` — the id from the config
+file — so they are matched on that rather than on their English text.
+
+One more timing catch: the shell's `onAfterRendering` fires **before** the
+dashboard has loaded its tiles, so a single translation pass finds nothing.
+It retries every 250 ms until both tiles are found.
+
+> **The general lesson:** when a framework loads a config file *for* you,
+> mutating your copy of that config does nothing. Watching the network tab
+> answered in ten seconds what reading the code did not.
+
+### b) `@restrict` was never used
+
+The PDF says plainly: *"roles are declared with `@requires` on
+services/actions and `@restrict` on entities."* Only `@requires` was there.
+The behaviour was already correct, but the annotation the use case names was
+missing, so it was added to the `Applications` entity:
+
+```cds
+@readonly
+@restrict: [ { grant: 'READ', to: 'Approval' } ]
+entity Applications as projection on db.Suppliers ...
+```
+
+Re-tested afterwards: 401 without login, 403 without the role, 200 with it —
+unchanged, which is the point. It states the rule next to the data it
+protects, in addition to the service-level check.
+
+### c) The certificate was mandatory but did not look it
+
+The PDF lists three mandatory fields — Company Name, Contact Person **and the
+certificate** — and asks that the user see this *at first glance*. The first
+two had `required="true"`; the file upload had nothing. Fixed with a required
+`Label` above the uploader, so all three now carry the red asterisk.
+
+Easy to miss because the rule *was* enforced, on both sides. It was the
+**visibility** requirement that was unmet, not the validation.
+
+### d) Raw codes leaking into the UI
+
+`DE` instead of *Almanya*, `Services` instead of *Hizmetler* — in the
+approvals table, the detail dialog, and the portal's status card. The database
+should store codes and the UI should show words; three places showed the
+codes. Fixed with `formatCountry` / `formatCategory`.
+
+`formatCountry` returns an unknown code unchanged rather than a missing-text
+warning, so adding a country to the dropdown without adding its translation
+degrades quietly instead of showing `[countryXX]` to a user.

@@ -19,7 +19,7 @@
 					<Label text="{i18n>colPhone}"/>
 					<Text text="{detail>/phone}"/>
 					<Label text="{i18n>colCountry}"/>
-					<Text text="{detail>/country}"/>
+					<Text text="{ path: 'detail>/country', formatter: '.formatCountry' }"/>
 					<Label text="{i18n>colTaxNumber}"/>
 					<Text text="{detail>/taxNumber}"/>
 					<Label text="{i18n>colWebsite}"/>

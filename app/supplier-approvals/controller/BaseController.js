@@ -50,6 +50,14 @@ sap.ui.define([
 			return category ? this.getText("category" + category) : "";
 		},
 
+		/** The database stores "DE"; the user should read "Almanya"/"Germany". */
+		formatCountry: function (code) {
+			if (!code) { return ""; }
+			const bundle = this.getOwnerComponent().getModel("i18n").getResourceBundle();
+			// an unknown code is shown as-is rather than as a missing-text warning
+			return bundle.hasText("country" + code) ? bundle.getText("country" + code) : code;
+		},
+
 		formatStatusText: function (status) {
 			return status ? this.getText("status" + status) : "";
 		},

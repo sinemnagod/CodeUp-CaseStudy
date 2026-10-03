@@ -78,7 +78,7 @@
 									<Text text="{contactPerson}"/>
 									<Text text="{email}"/>
 									<Text text="{phone}"/>
-									<Text text="{country}"/>
+									<Text text="{ path: 'country', formatter: '.formatCountry' }"/>
 									<Text text="{ path: 'category', formatter: '.formatCategory' }"/>
 									<Text text="{taxNumber}"/>
 									<Text text="{website}"/>

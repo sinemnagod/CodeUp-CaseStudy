@@ -17,8 +17,17 @@ service ApprovalService {
    * `@readonly` means the approver can list and read, but cannot write directly -
    * every change has to go through the approve / reject / AI actions below,
    * so our rules (e.g. "a rejection needs a reason") can never be bypassed.
+   *
+   * `@restrict` states the permission on the entity itself, in addition to the
+   * `@requires` on the service. The service-level check already blocks anyone
+   * without the role, so this is belt and braces - but it keeps the rule next
+   * to the data it protects, which is where someone reading the model looks
+   * for it.
    */
   @readonly
+  @restrict: [
+    { grant: 'READ', to: 'Approval' }
+  ]
   entity Applications as projection on db.Suppliers
     excluding { passwordHash }
     where status <> 'New';   // suppliers who registered but never submitted are not applications yet

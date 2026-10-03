@@ -31,6 +31,84 @@
 	}
 
 	/**
+	 * Loads the launchpad's own texts.
+	 *
+	 * This page is not a UI5 app, so it has no ResourceModel to do this for it.
+	 * It follows the same rule the two apps follow: take the language from the
+	 * browser, fall back to English for anything that is not Turkish.
+	 */
+	async function loadTexts() {
+		// The browser language decides, exactly as in the two UI5 apps.
+		// ?sap-language=xx is honoured as well, because that is the standard SAP
+		// override and UI5 itself obeys it - without this the shell would switch
+		// language while the tiles did not.
+		const override = new URLSearchParams(location.search).get("sap-language");
+		const language = (override || navigator.language || "en").slice(0, 2).toLowerCase();
+		const file = language === "tr" ? "i18n/launchpad_tr.properties" : "i18n/launchpad.properties";
+		const body = await (await fetch(file)).text();
+
+		const texts = {};
+		body.split("\n").forEach(function (line) {
+			const trimmed = line.trim();
+			if (!trimmed || trimmed.startsWith("#")) { return; }
+			const separator = trimmed.indexOf("=");
+			if (separator > 0) {
+				texts[trimmed.slice(0, separator).trim()] = trimmed.slice(separator + 1).trim();
+			}
+		});
+		return texts;
+	}
+
+	/**
+	 * Translates the two tiles once the shell has drawn them.
+	 *
+	 * Why after rendering, and not in the configuration?
+	 * The sandbox fetches appconfig/fioriSandboxConfig.json **itself**, and that
+	 * copy replaces anything we put in window["sap-ushell-config"] - the shell
+	 * even logs "Merging of arrays is not supported for config key groups.
+	 * Overriding the whole array". Removing the tiles from the file is not an
+	 * option either: the sandbox then falls back to its own demo tiles.
+	 * So the file stays the single place the tiles are declared, and their
+	 * texts are replaced here, on the rendered controls.
+	 *
+	 * Tiles are matched on originalTileId - the id from the config file - so
+	 * this does not depend on the English text happening to match.
+	 */
+	function translateTiles(texts) {
+		let translated = 0;
+		const byTileId = {
+			supplierPortalTile:    { header: texts.portalTitle,    subheader: texts.portalSubtitle },
+			supplierApprovalsTile: { header: texts.approvalsTitle, subheader: texts.approvalsSubtitle }
+		};
+
+		sap.ui.core.Element.registry.forEach(function (control) {
+			if (!control.isA || !control.isA("sap.m.GenericTile")) { return; }
+			const parent = control.getParent();
+			const context = parent && parent.getBindingContext && parent.getBindingContext();
+			const data = context && context.getObject();
+			const text = data && byTileId[data.originalTileId];
+			if (text) {
+				control.setHeader(text.header);
+				control.setSubheader(text.subheader);
+				translated++;
+			}
+		});
+		return translated;
+	}
+
+	/**
+	 * The shell finishes rendering before the dashboard has loaded its tiles,
+	 * so translating once on onAfterRendering is too early - the tiles do not
+	 * exist yet. Keep looking briefly until both are there.
+	 */
+	function translateTilesWhenReady(texts, attemptsLeft) {
+		if (translateTiles(texts) >= 2) { return; }
+		if (attemptsLeft > 0) {
+			setTimeout(function () { translateTilesWhenReady(texts, attemptsLeft - 1); }, 250);
+		}
+	}
+
+	/**
 	 * Who is logged in?
 	 *
 	 * /user-api/currentUser is a built-in endpoint of the approuter. It is
@@ -61,7 +139,7 @@
 	 * avatar control at all. So we add our own header item, which is a
 	 * documented part of the renderer API.
 	 */
-	function addUserToHeader(renderer, user) {
+	function addUserToHeader(renderer, user, texts) {
 		const fullName = [user.firstname, user.lastname].filter(Boolean).join(" ") || user.name;
 		const email = user.email || user.name;
 
@@ -78,7 +156,7 @@
 				], function (ResponsivePopover, VBox, Title, Text, Button) {
 					if (!window._userPopover) {
 						window._userPopover = new ResponsivePopover({
-							title: "Signed in",
+							title: texts.userMenuTitle,
 							placement: "Bottom",
 							contentWidth: "18rem",
 							content: [
@@ -87,7 +165,7 @@
 										new Title({ text: fullName, level: "H4" }),
 										new Text({ text: email }),
 										new Button({
-											text: "Sign out",
+											text: texts.signOut,
 											icon: "sap-icon://log",
 											type: "Transparent",
 											// the approuter's logout endpoint, declared in xs-app.json
@@ -106,6 +184,7 @@
 
 	(async function startLaunchpad() {
 		const config = await (await fetch("appconfig/fioriSandboxConfig.json")).json();
+		const texts = await loadTexts();
 
 		// systemProperties is not optional: without it the sandbox's UserInfo
 		// service throws "Cannot read properties of undefined (reading
@@ -151,19 +230,25 @@
 			// settled into its "home" state. Added any earlier it is created but
 			// never shown, because the shell then rebuilds the header for the
 			// state it is switching into.
-			if (user) {
-				let added = false;
-				shell.addEventDelegate({
-					onAfterRendering: async function () {
-						if (added) { return; }
-						added = true;
+			// Both the tile texts and the user item have to wait until the shell
+			// has rendered: anything added earlier is built and then discarded
+			// when the shell switches into its "home" state.
+			let done = false;
+			shell.addEventDelegate({
+				onAfterRendering: async function () {
+					if (done) { return; }
+					done = true;
+
+					translateTilesWhenReady(texts, 40);   // up to ~10 seconds
+
+					if (user) {
 						const api = Container.getRendererInternal
 							? Container.getRendererInternal("fiori2")
 							: Container.getRenderer("fiori2");
-						addUserToHeader(await Promise.resolve(api), user);
+						addUserToHeader(await Promise.resolve(api), user, texts);
 					}
-				});
-			}
+				}
+			});
 		});
 	})();
 	</script>

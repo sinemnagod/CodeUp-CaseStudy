@@ -97,6 +97,9 @@
 					<!-- The rules are stated BEFORE the user picks a file, as the use case asks. -->
 					<MessageStrip text="{i18n>certificateIntro}" type="Information" showIcon="true"
 						class="sapUiSmallMarginBottom"/>
+					<!-- required="true" draws the red asterisk, so the certificate is
+					     visibly mandatory just like Company Name and Contact Person. -->
+					<Label text="{i18n>certificateFileLabel}" required="true" labelFor="certificateUploader"/>
 					<u:FileUploader
 						id="certificateUploader"
 						name="certificate"
@@ -139,7 +142,7 @@
 							</VBox>
 							<VBox class="sapUiMediumMarginEnd">
 								<Label text="{i18n>categoryLabel}"/>
-								<Text text="{app>/category}"/>
+								<Text text="{ path: 'app>/category', formatter: '.formatCategory' }"/>
 							</VBox>
 							<VBox>
 								<Label text="{i18n>submittedAtShort}"/>
