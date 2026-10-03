@@ -1059,3 +1059,62 @@ fields explicitly in the binding's `$select`.
 
 Worth remembering: with `autoExpandSelect`, anything you read in code rather
 than bind in the view has to be requested on purpose.
+
+---
+
+## 20. Lessons worth repeating
+
+The transferable points from everything above, collected. These are the ones
+worth saying out loud in the video — they are about judgement, not about SAP.
+
+### On error messages
+
+> **An error message that cannot distinguish between "wrong key", "dead model"
+> and "busy right now" is not a safety net, it is a blindfold.**
+
+The AI feature originally reported every failure as `AI_UNAVAILABLE`. That one
+message covered a retired model (404), a bad key (401) and an upstream rate
+limit (429) — three completely different problems with three completely
+different fixes. Splitting them into four codes turned a guessing game into a
+sentence that tells you what to do. (§19)
+
+### On diagnosing
+
+**Check *who* answered before assuming it was your code.** A bare `403` at
+`localhost:5000` looked like a missing SAP authorization. One `curl -i` showed
+`Server: AirTunes` — it was macOS, and the approuter was not even running. (§17b)
+
+**"HTTP 200" is not "it worked".** Fourteen free AI models were tested; most
+returned 200 with an *empty* answer. A check that only asserted a 2xx would
+have passed them. (§19)
+
+**"Created but not visible" and "not created" are different problems.** The
+launchpad user item existed with the right tooltip but did not render — a
+timing problem, not a logic one. `getElementById` separated the two in one
+step. (§18)
+
+**Group the failures by what they share.** Three approuter routes failed and
+two worked. The three failures all used `localDir`; the two that worked used
+`destination`. That pointed at the cause with no guessing. (§17c)
+
+### On building
+
+**Validate twice, and know why.** The browser checks for fast feedback; the
+server checks because anything in a browser can be switched off. The server is
+the one that decides. (§8)
+
+**Do not trust a filename.** The PDF check reads the file's first four bytes
+(`%PDF`) rather than its extension, because anyone can rename `virus.exe` to
+`cert.pdf`. (§8)
+
+**Make silent misconfiguration loud.** An XSUAA instance created without its
+parameters works fine and is simply missing every permission — the symptom
+appears three steps later. `scripts/check-xsuaa.js` and `scripts/check-ai.js`
+exist to turn those quiet failures into immediate, specific ones. (§17a)
+
+**A pinned free-tier model id is a bug with a timer on it.** It is
+configuration, not a constant. (§19)
+
+**The AI is another caller of the rule, not a way around it.** `analyzeWithAI`
+writes through the very same `decide()` helper the human buttons use, so it
+inherits every check and gets stamped `aiDecision = true`. (§19)
