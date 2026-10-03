@@ -58,6 +58,11 @@ sap.ui.define([
 			return bundle.hasText("country" + code) ? bundle.getText("country" + code) : code;
 		},
 
+		/** "Bekleyen" + 4 -> "Bekleyen (4)" */
+		formatTabText: function (label, count) {
+			return label + " (" + (count || 0) + ")";
+		},
+
 		formatStatusText: function (status) {
 			return status ? this.getText("status" + status) : "";
 		},

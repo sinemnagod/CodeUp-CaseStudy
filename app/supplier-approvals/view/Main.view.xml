@@ -47,19 +47,28 @@
 		<f:header>
 			<f:DynamicPageHeader pinnable="true">
 				<!--
-					IconTabHeader, not IconTabBar: this control is only the row of
-					tabs. The table lives in the page content below, so it keeps its
-					own scrolling and sticky header.
+					SegmentedButton rather than IconTabBar/IconTabHeader: the icon
+					tabs mark the active tab with a blue underline, which is drawn by
+					the theme and cannot be turned off without custom CSS
+					(showSelection="false" is deprecated and has no effect).
+					A SegmentedButton shows the active choice as a pressed button
+					instead - same behaviour, no underline, still a standard control.
 				-->
-				<IconTabHeader id="statusTabs" selectedKey="All" select=".onTabSelect"
-					backgroundDesign="Transparent" mode="Inline">
+				<SegmentedButton id="statusTabs"
+					selectedKey="{ui>/statusFilter}"
+					selectionChange=".onTabSelect"
+					class="sapUiSmallMarginBottom">
 					<items>
-						<IconTabFilter key="All"       text="{i18n>tabAll}"      icon="sap-icon://list"    count="{counts>/All}"/>
-						<IconTabFilter key="Submitted" text="{i18n>tabPending}"  icon="sap-icon://pending" count="{counts>/Submitted}" iconColor="Critical"/>
-						<IconTabFilter key="Approved"  text="{i18n>tabApproved}" icon="sap-icon://accept"  count="{counts>/Approved}"  iconColor="Positive"/>
-						<IconTabFilter key="Rejected"  text="{i18n>tabRejected}" icon="sap-icon://decline" count="{counts>/Rejected}"  iconColor="Negative"/>
+						<SegmentedButtonItem key="All"       icon="sap-icon://list"
+							text="{ parts: ['i18n>tabAll', 'counts>/All'], formatter: '.formatTabText' }"/>
+						<SegmentedButtonItem key="Submitted" icon="sap-icon://pending"
+							text="{ parts: ['i18n>tabPending', 'counts>/Submitted'], formatter: '.formatTabText' }"/>
+						<SegmentedButtonItem key="Approved"  icon="sap-icon://accept"
+							text="{ parts: ['i18n>tabApproved', 'counts>/Approved'], formatter: '.formatTabText' }"/>
+						<SegmentedButtonItem key="Rejected"  icon="sap-icon://decline"
+							text="{ parts: ['i18n>tabRejected', 'counts>/Rejected'], formatter: '.formatTabText' }"/>
 					</items>
-				</IconTabHeader>
+				</SegmentedButton>
 			</f:DynamicPageHeader>
 		</f:header>
 

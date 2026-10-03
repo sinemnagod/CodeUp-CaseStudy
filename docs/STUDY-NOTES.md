@@ -1307,3 +1307,33 @@ to sign in again.
 > Redirecting a just-logged-out user to a protected page re-triggers the very
 > single-sign-on you were trying to escape. A logout has to land somewhere
 > public or it cannot be seen to have worked.
+
+### The blue underline under the active tab
+
+`IconTabBar` / `IconTabHeader` mark the active tab with a blue underline. That
+line is drawn by the **theme**, not by a property, so it cannot be removed
+without custom CSS. `showSelection="false"` looks like the answer and is not:
+it is deprecated, and setting it at runtime left the underline exactly where
+it was — verified rather than assumed.
+
+The way to change it without CSS is to use a control that shows selection
+differently. `sap.m.SegmentedButton` marks the active choice as a **pressed
+button**: same four mutually exclusive filters, same counts, no underline, and
+still a standard control.
+
+The counts moved into each label with a two-part binding:
+
+```xml
+text="{ parts: ['i18n>tabPending', 'counts>/Submitted'], formatter: '.formatTabText' }"
+```
+
+`onTabSelect` now accepts the key from either control, so swapping back to
+icon tabs is a one-line change if the underline turns out to be preferable:
+
+```js
+const key = event.getParameter("key") || (item && item.getKey());
+```
+
+> Worth knowing in general: when a visual detail comes from the theme rather
+> than from a property, the no-CSS answer is almost always "use a different
+> control", not "find the right setting".
