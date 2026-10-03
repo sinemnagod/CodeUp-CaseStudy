@@ -56,9 +56,20 @@
 
 				<!-- the uploaded certificate, served straight from the database -->
 				<Title text="{i18n>certificateLabel}" level="H3" class="sapUiMediumMarginTop sapUiSmallMarginBottom"/>
+				<!--
+					Clicking the certificate offers both options the reviewer asked
+					for: open it in the browser, or save it to disk.
+				-->
 				<HBox alignItems="Center">
 					<core:Icon src="sap-icon://pdf-attachment" class="sapUiTinyMarginEnd"/>
-					<Link text="{detail>/certificateName}" href="{ui>/certificateUrl}" target="_blank"/>
+					<MenuButton text="{detail>/certificateName}" type="Transparent" icon="sap-icon://slim-arrow-down">
+						<menu>
+							<Menu>
+								<MenuItem text="{i18n>certificateView}"     icon="sap-icon://display"  press=".onViewCertificate"/>
+								<MenuItem text="{i18n>certificateDownload}" icon="sap-icon://download" press=".onDownloadCertificate"/>
+							</Menu>
+						</menu>
+					</MenuButton>
 				</HBox>
 
 				<!-- decision area, only while the application is still pending -->

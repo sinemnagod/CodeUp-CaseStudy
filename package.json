@@ -4,6 +4,7 @@
   "private": true,
   "description": "CodeUp internship use case - Supplier Onboarding & Approval",
   "dependencies": {
+    "@cap-js/hana": "^3",
     "@sap-cloud-sdk/connectivity": "^4.9.1",
     "@sap-cloud-sdk/http-client": "^4.9.1",
     "@sap/cds": "^10",
@@ -26,6 +27,14 @@
         "kind": "sqlite",
         "credentials": {
           "url": "db.sqlite"
+        },
+        "[hybrid]": {
+          "kind": "hana",
+          "impl": "@cap-js/hana"
+        },
+        "[production]": {
+          "kind": "hana",
+          "impl": "@cap-js/hana"
         }
       },
       "auth": {

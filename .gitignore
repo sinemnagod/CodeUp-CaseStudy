@@ -9,3 +9,6 @@ default-env.json
 approuter/default-env.json
 service-key.json
 destination-key.json
+db.sqlite-wal
+db.sqlite-shm
+hana-key.json

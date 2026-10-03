@@ -1329,3 +1329,64 @@ wrong way round.
 > complaint costs real function, the complaint is the thing to drop. It is
 > also why the swap was written to be reversible — `onTabSelect` accepted the
 > key from either control — so undoing it was one `git revert`.
+
+---
+
+## 24. SAP HANA Cloud, and why the model did not change
+
+The company asked verbally (it is not in the PDF) for data such as e-mail and
+password to live in **SAP HANA Cloud**. The project had been built on SQLite.
+
+Adding HANA required **no change to the data model, the services or the UI**.
+The whole change is one profile in `package.json`:
+
+```json
+"db": {
+  "kind": "sqlite",
+  "credentials": { "url": "db.sqlite" },
+  "[hybrid]":     { "kind": "hana", "impl": "@cap-js/hana" },
+  "[production]": { "kind": "hana", "impl": "@cap-js/hana" }
+}
+```
+
+| profile | database |
+|---|---|
+| development (default) | SQLite |
+| hybrid — what gets demonstrated | SAP HANA Cloud |
+
+Development therefore never depends on a cloud instance being awake, while the
+recorded version runs on HANA. It is the same profile mechanism already used
+for authentication (`mocked` locally, `xsuaa` in hybrid) — one idea, applied
+twice.
+
+### The proof worth showing on camera
+
+```bash
+npx cds compile db/schema.cds --to sql --dialect hana
+npx cds compile db/schema.cds --to sql --dialect sqlite
+```
+
+One `schema.cds`, two different SQL dialects, no edit in between. **This is
+the point of CDS**: you describe the data once, and CAP generates the SQL for
+whichever database is configured. `certificate : LargeBinary` becomes `BLOB`
+in both; `String(200)` becomes `NVARCHAR(200)` in both.
+
+### Something `cds add hana` did that needed undoing
+
+`cds add hana` rewrote `xs-security.json` and **appended a second
+`$XSAPPNAME.Approval` scope** — it re-derives scopes from the CDS model and did
+not notice the one already there. Two identical scopes would have been rejected
+when updating the XSUAA instance. It also added an empty `"attributes": []`.
+
+> Generators are worth using and worth reading afterwards. `git diff` after
+> any `cds add` takes ten seconds and would have caught this at deploy time
+> instead of debug time.
+
+### Two operational facts about trial HANA
+
+- **A trial instance stops itself every day.** If it is stopped, the hybrid
+  profile cannot start. Starting it is now the first item on the
+  pre-recording checklist.
+- **Allowed connections must be set to all IP addresses**, or a laptop cannot
+  reach the database at all. This is set when the instance is created and is
+  easy to miss.

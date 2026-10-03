@@ -4,6 +4,14 @@ Cheat sheet for starting everything after a restart.
 
 ---
 
+## Before you start: is HANA awake?
+
+The **hybrid** profile uses SAP HANA Cloud, and a trial instance **stops itself
+every day**. BTP Cockpit → SAP HANA Cloud → if it says *Stopped*, press
+**Start** and wait a few minutes. See [HANA-SETUP.md](HANA-SETUP.md).
+
+Plain `npm run watch` uses SQLite and needs none of this.
+
 ## Start it
 
 **Two terminals, both in the project root:**
@@ -51,6 +59,7 @@ password `Secret123!`.
 ```bash
 node scripts/check-xsuaa.js    # is the SAP login set up correctly?
 node scripts/check-ai.js       # is the AI destination + model working?
+npx cds compile db/schema.cds --to sql --dialect hana    # same model, HANA SQL
 lsof -nP -iTCP:5000 -sTCP:LISTEN   # is something else holding port 5000?
 ```
 
@@ -68,8 +77,9 @@ lsof -nP -iTCP:5000 -sTCP:LISTEN   # is something else holding port 5000?
 
 | Command | What it does |
 |---|---|
-| `npm run watch:hybrid` | backend with **real** SAP login |
-| `npm run watch` | backend with **fake** users `approver` / `employee` (no BTP needed) |
+| `npm run watch:hybrid` | backend with **real** SAP login **and HANA Cloud** |
+| `npm run watch` | backend with **fake** users `approver` / `employee`, on SQLite (no BTP needed) |
+| `npx cds deploy --to hana --profile hybrid` | create/update the tables in HANA |
 | `npm run approuter` | the front door on :5000 |
 | `node scripts/seed-demo.js` | add five demo suppliers |
 | `AI_MODEL="..." npm run watch:hybrid` | run with a different AI model |

@@ -62,6 +62,21 @@ if (fs.existsSync(DEST_KEY_FILE)) {
 	}];
 }
 
+// The HANA HDI container, used by the hybrid profile. Save its service key as
+// hana-key.json. Without it the hybrid profile has no database to talk to.
+const HANA_KEY_FILE = path.join(ROOT, 'hana-key.json');
+if (fs.existsSync(HANA_KEY_FILE)) {
+	const hanaRaw = JSON.parse(fs.readFileSync(HANA_KEY_FILE, 'utf8'));
+	const hanaCredentials = hanaRaw.credentials || hanaRaw;
+	vcap.hana = [{
+		label: 'hana',
+		tags: ['hana', 'database'],
+		name: 'codeup-db',
+		instance_name: 'codeup-db',
+		credentials: hanaCredentials
+	}];
+}
+
 // One file at the project root, read by BOTH processes: the backend and the
 // approuter are started from here, and each picks out the part it needs.
 // forwardAuthToken passes the SAP token on to the backend, so CAP can check
@@ -77,7 +92,8 @@ fs.writeFileSync(
 console.log('\n  Wrote default-env.json');
 console.log('  XSUAA tenant : ' + credentials.url);
 console.log('  clientid     : ' + credentials.clientid.slice(0, 12) + '...');
-console.log('  destination service : ' + (vcap.destination ? 'bound' : 'not bound (only needed for the AI feature)') + '\n');
+console.log('  destination service : ' + (vcap.destination ? 'bound' : 'not bound (only needed for the AI feature)'));
+console.log('  HANA (hybrid)       : ' + (vcap.hana ? 'bound' : 'not bound (hybrid profile will fail without it)') + '\n');
 console.log('  Now run the two servers in two terminals:');
 console.log('    npm run watch:hybrid');
 console.log('    npm run approuter        <- from the PROJECT ROOT\n');

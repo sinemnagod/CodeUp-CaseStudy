@@ -245,6 +245,36 @@ sap.ui.define([
 			this._detailDialog.open();
 		},
 
+		/** Opens the PDF in a new browser tab. */
+		onViewCertificate: function () {
+			window.open(this.getView().getModel("ui").getProperty("/certificateUrl"), "_blank", "noopener");
+		},
+
+		/**
+		 * Saves the PDF to disk.
+		 *
+		 * The same URL opened by "view" would normally be displayed rather than
+		 * saved, because the server sends it as application/pdf. Fetching it and
+		 * handing the browser a Blob with a download name forces a save instead,
+		 * and keeps the real file name.
+		 */
+		onDownloadCertificate: async function () {
+			const url = this.getView().getModel("ui").getProperty("/certificateUrl");
+			const name = this.getView().getModel("detail").getProperty("/certificateName") || "certificate.pdf";
+			try {
+				const response = await fetch(url);
+				if (!response.ok) { throw new Error("CERTIFICATE_REQUIRED"); }
+				const blobUrl = URL.createObjectURL(await response.blob());
+				const link = document.createElement("a");
+				link.href = blobUrl;
+				link.download = name;
+				link.click();
+				URL.revokeObjectURL(blobUrl);
+			} catch (error) {
+				this.showError(error);
+			}
+		},
+
 		onCloseDetail: function () {
 			this._detailDialog.close();
 		},
