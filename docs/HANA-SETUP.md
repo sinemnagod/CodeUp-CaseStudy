@@ -23,22 +23,46 @@ while the version you demonstrate and record runs on HANA.
 
 ---
 
-## 1. Create the HANA Cloud instance
+## 1. Subscribe to the HANA Cloud tools
 
-1. BTP Cockpit → your **trial** subaccount → **Services** → **Service Marketplace**
-2. Find **SAP HANA Cloud** → **Create**
-3. Choose **SAP HANA Cloud, SAP HANA Database**
-4. Give it a name, e.g. `codeup-hana`
-5. Set the **DBADMIN password** — write it down, you cannot recover it
-6. **Important:** on the *Connections* step set
-   **Allowed connections → Allow all IP addresses**.
-   Without this your laptop cannot reach the database and the hybrid profile
-   fails with a connection timeout.
-7. Create, then wait. **Provisioning takes 20–40 minutes.**
+There are **two different things** behind the "SAP HANA Cloud" tile: the
+management UI, and the database itself. Get the UI first.
+
+1. BTP Cockpit → **trial** subaccount → **Services** → **Service Marketplace**
+2. **SAP HANA Cloud** → **Create**
+3. In the **Plan** dropdown, under **Subscriptions**, choose **`tools`**
+   (`hana-cloud-tools`) → **Create**
+
+That is **SAP HANA Cloud Central**: free, instant, and the only comfortable
+place to set the password, open the IP allowlist, and **start the instance**
+after the trial stops it overnight. Open it with **Go to Application**.
 
 ---
 
-## 2. Create an HDI container
+## 2. Create the database
+
+In SAP HANA Cloud Central → **Create Instance** →
+**SAP HANA Cloud, SAP HANA Database**.
+
+(The same thing can be done from the cockpit dialog by choosing the
+**`hana-free`** plan under *Instances* — not `hana-cloud-connection-free`,
+which attaches to a database that already exists, and not
+`relational-data-lake-free`, which is a data lake.)
+
+1. Name it, e.g. `codeup-hana`
+2. Set the **DBADMIN password** — write it down, it cannot be recovered
+3. **Connections → Allow all IP addresses.**
+   Miss this and your laptop cannot reach the database at all; the hybrid
+   profile then fails with a connection timeout that looks like a code problem
+   and is not.
+4. Create, and wait. **Provisioning takes 20-40 minutes.**
+
+Wait for the status to read **Running** before going on - the HDI container in
+the next step cannot be created against a database that is not up.
+
+---
+
+## 3. Create an HDI container
 
 The application does not log in as DBADMIN; it gets its own schema.
 
@@ -65,7 +89,7 @@ It should now print `HANA (hybrid) : bound`.
 
 ---
 
-## 3. Create the tables
+## 4. Create the tables
 
 ```bash
 npx cds deploy --to hana --profile hybrid
@@ -76,7 +100,7 @@ your HDI container. Re-run it whenever the model changes.
 
 ---
 
-## 4. Run it
+## 5. Run it
 
 ```bash
 npm run watch:hybrid      # terminal 1 - now talking to HANA
