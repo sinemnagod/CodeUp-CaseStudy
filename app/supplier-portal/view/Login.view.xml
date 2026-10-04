@@ -2,84 +2,74 @@
 	controllerName="codeup.supplierportal.controller.Login"
 	xmlns="sap.m"
 	xmlns:mvc="sap.ui.core.mvc"
-	xmlns:f="sap.f"
 	displayBlock="true">
 
-	<Page showHeader="false" backgroundDesign="List">
+	<!--
+		The photo fills the page; the form floats on top of it in a Dialog.
 
-		<!--
-			Split screen: photo on the left, form on the right.
-			`mode="Background"` plus backgroundSize/backgroundPosition are ordinary
-			sap.m.Image properties, so a full-bleed photo needs no CSS. Each half
-			gets growFactor 1 and baseSize 0, which makes them exactly equal
-			regardless of their content.
+		A Dialog is the only standard control that genuinely layers above the
+		page - Page, FlexBox and Image have no z-ordering, so an overlay would
+		otherwise need a CSS rule, and this project writes none.
+		It has no header and cannot be dismissed: this is the page, not a popup.
+	-->
+	<Page showHeader="false" enableScrolling="false" backgroundDesign="List">
 
-			The photo is hidden on phones, and hidden again by onImageMissing
-			if the file is missing - the form then centres on the whole page.
-		-->
-		<FlexBox height="100%" fitContainer="true" renderType="Bare" alignItems="Stretch">
+		<Image src="img/login.jpg"
+			mode="Background"
+			backgroundSize="cover"
+			backgroundPosition="center center"
+			backgroundRepeat="no-repeat"
+			width="100%" height="100%"
+			decorative="true"
+			error=".onImageMissing"/>
 
-			<Image id="loginImage"
-				src="img/login.jpg"
-				mode="Background"
-				backgroundSize="cover"
-				backgroundPosition="center center"
-				backgroundRepeat="no-repeat"
-				width="100%" height="100%"
-				decorative="true"
-				visible="{device>/system/desktop}"
-				error=".onImageMissing">
-				<layoutData><FlexItemData growFactor="1" baseSize="0"/></layoutData>
-			</Image>
+		<dependents>
+			<Dialog id="loginDialog"
+				showHeader="false"
+				contentWidth="26rem"
+				escapeHandler=".onDialogEscape">
+				<VBox class="sapUiMediumMargin">
 
-			<FlexBox justifyContent="Center" alignItems="Center" height="100%" direction="Column">
-				<layoutData><FlexItemData growFactor="1" baseSize="0"/></layoutData>
+				<Title text="{i18n>appTitle}" level="H1" titleStyle="H3"/>
+				<Text text="{i18n>loginTitle}" class="sapUiTinyMarginTop sapUiMediumMarginBottom"/>
 
-				<f:Card width="26rem">
-					<f:content>
-						<VBox class="sapUiMediumMargin">
+				<Label text="{i18n>emailLabel}" labelFor="email"/>
+				<Input id="email"
+				value="{ui>/email}"
+				type="Email"
+				placeholder="{i18n>emailPlaceholder}"
+				submit=".onLogin"
+				class="sapUiSmallMarginBottom"/>
 
-							<Title text="{i18n>appTitle}" level="H1" titleStyle="H3"/>
-							<Text text="{i18n>loginTitle}" class="sapUiTinyMarginTop sapUiMediumMarginBottom"/>
+				<Label text="{i18n>passwordLabel}" labelFor="password"/>
+				<HBox alignItems="Center">
+				<Input id="password"
+				value="{ui>/password}"
+				type="{ui>/passwordType}"
+				submit=".onLogin">
+				<layoutData><FlexItemData growFactor="1"/></layoutData>
+				</Input>
+				<!-- the eye icon that shows / hides the password -->
+				<Button icon="{ui>/passwordIcon}" type="Transparent" press=".onTogglePassword"/>
+				</HBox>
 
-							<Label text="{i18n>emailLabel}" labelFor="email"/>
-							<Input id="email"
-								value="{ui>/email}"
-								type="Email"
-								placeholder="{i18n>emailPlaceholder}"
-								submit=".onLogin"
-								class="sapUiSmallMarginBottom"/>
+				<Button text="{i18n>loginButton}"
+				type="Emphasized"
+				icon="sap-icon://key"
+				press=".onLogin"
+				busy="{ui>/busy}"
+				busyIndicatorDelay="0"
+				class="sapUiMediumMarginTop"/>
 
-							<Label text="{i18n>passwordLabel}" labelFor="password"/>
-							<HBox alignItems="Center">
-								<Input id="password"
-									value="{ui>/password}"
-									type="{ui>/passwordType}"
-									submit=".onLogin">
-									<layoutData><FlexItemData growFactor="1"/></layoutData>
-								</Input>
-								<!-- the eye icon that shows / hides the password -->
-								<Button icon="{ui>/passwordIcon}" type="Transparent" press=".onTogglePassword"/>
-							</HBox>
+				<Button text="{i18n>toRegisterLink}"
+				type="Transparent"
+				press=".onGoToRegister"
+				class="sapUiTinyMarginTop"/>
 
-							<Button text="{i18n>loginButton}"
-								type="Emphasized"
-								icon="sap-icon://key"
-								press=".onLogin"
-								busy="{ui>/busy}"
-								busyIndicatorDelay="0"
-								class="sapUiMediumMarginTop"/>
+				</VBox>
+			</Dialog>
+		</dependents>
 
-							<Button text="{i18n>toRegisterLink}"
-								type="Transparent"
-								press=".onGoToRegister"
-								class="sapUiTinyMarginTop"/>
-
-						</VBox>
-					</f:content>
-				</f:Card>
-			</FlexBox>
-		</FlexBox>
 	</Page>
 
 </mvc:View>

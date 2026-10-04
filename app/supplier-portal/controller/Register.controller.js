@@ -67,6 +67,16 @@ sap.ui.define([
 			event.getSource().setVisible(false);
 		},
 
+		/** The form is the page, so it opens itself and stays open. */
+		onAfterRendering: function () {
+			const dialog = this.byId("registerDialog");
+			if (dialog && !dialog.isOpen()) { dialog.open(); }
+		},
+
+		onDialogEscape: function (promise) {
+			promise.reject();
+		},
+
 		onTogglePassword: function () {
 			const ui = this.getView().getModel("ui");
 			const hidden = ui.getProperty("/passwordType") === "Password";

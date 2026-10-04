@@ -1455,8 +1455,26 @@ blob; `pending` reads clearly as "not reached yet" at that size.
 ## 25. A background photo, still without CSS
 
 The login and register pages were a small card floating in white space. They
-now use the split layout from the company's own example: photo on the left
-half, form on the right.
+now show the photo full page, with the form floating on top of it.
+
+### Why a Dialog
+
+There is **no standard UI5 control that layers content over a background
+image**. `Page`, `FlexBox` and `Image` have no z-ordering, so an overlay would
+normally be one CSS rule - which this project does not allow itself.
+
+`sap.m.Dialog` is the exception: floating above the page is the whole point of
+it. So the photo fills the page and the form lives in a Dialog with
+`showHeader="false"` that opens itself in `onAfterRendering` and refuses to
+close (`escapeHandler` rejects the promise). It is the page, not a popup.
+
+Be ready to say that out loud, because using a Dialog as a layout is unusual
+and an interviewer may well ask. The honest answer is: *it is the only standard
+control that layers, and the alternative was writing CSS, which the use case
+forbids.*
+
+A split screen - photo on one half, form on the other - was built first and is
+in the git history. It needs no Dialog, but it is not an overlay.
 
 No stylesheet was needed, because **`sap.m.Image` has a background mode**:
 

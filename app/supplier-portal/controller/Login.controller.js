@@ -39,6 +39,17 @@ sap.ui.define([
 			event.getSource().setVisible(false);
 		},
 
+		/** The login form is the page, so it opens itself and stays open. */
+		onAfterRendering: function () {
+			const dialog = this.byId("loginDialog");
+			if (dialog && !dialog.isOpen()) { dialog.open(); }
+		},
+
+		/** Escape must not dismiss it - there is nothing behind it to go back to. */
+		onDialogEscape: function (promise) {
+			promise.reject();
+		},
+
 		onTogglePassword: function () {
 			const ui = this.getView().getModel("ui");
 			const hidden = ui.getProperty("/passwordType") === "Password";
