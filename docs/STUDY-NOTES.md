@@ -1390,3 +1390,62 @@ when updating the XSUAA instance. It also added an empty `"attributes": []`.
 - **Allowed connections must be set to all IP addresses**, or a laptop cannot
   reach the database at all. This is set when the instance is created and is
   easy to miss.
+
+### Making the process-flow symbols big and centred — without CSS
+
+The node boxes showed a small state icon tucked in a corner of a large empty
+box. Two discoveries made it fixable with standard controls only.
+
+**1. `ProcessFlowNode` can hold your own controls.** Besides its properties it
+has four aggregations:
+
+```
+zoomLevelOneContent   zoomLevelTwoContent   zoomLevelThreeContent   zoomLevelFourContent
+```
+
+Whatever you put in the one matching the current zoom is rendered **inside the
+box**. So the big centred symbol is just:
+
+```xml
+<pf:zoomLevelOneContent>
+    <FlexBox height="100%" justifyContent="Center" alignItems="Center">
+        <core:Icon src="{flow>/icon1}" color="{flow>/colour1}" size="4rem"/>
+    </FlexBox>
+</pf:zoomLevelOneContent>
+```
+
+**2. The zoom levels are numbered backwards from what you would guess.**
+Measured, not assumed:
+
+| zoomLevel | box size |
+|---|---|
+| **One** | 176 x 221 — the biggest |
+| Two | 144 x 195 |
+| Three | 48 x 60 |
+| Four | 48 x 60 — the smallest |
+
+The first attempt filled `zoomLevelThreeContent`, expecting "three" to be
+large. It is tiny, and the boxes shrank to match. One is the big one.
+
+`zoomLevel` has a setter but is **not a declared property**, so it cannot be
+set in XML — the controller calls `setZoomLevel()`. The portal page uses
+`"One"` (full page width); the approvals dialog uses `"Two"`, because the
+dialog is narrower and three 176px boxes would overflow it.
+
+The icon and colour come from the node state, through the same `flow` model
+that already drives the states:
+
+| state | icon | colour |
+|---|---|---|
+| Positive | `sys-enter-2` | Positive (green) |
+| Critical | `alert` | Critical (orange) |
+| Negative | `sys-cancel` | Negative (red) |
+| Planned | `pending` | Neutral (grey) |
+
+`circle-task-2` was tried first for *Planned* and rendered as an ambiguous grey
+blob; `pending` reads clearly as "not reached yet" at that size.
+
+> The pattern repeats from the tab underline: when the theme controls how
+> something looks, the no-CSS answer is to find the aggregation or control that
+> lets you supply the content yourself. Reading
+> `getMetadata().getAllAggregations()` found this in one call.

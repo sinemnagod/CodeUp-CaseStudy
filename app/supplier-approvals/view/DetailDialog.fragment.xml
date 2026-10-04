@@ -45,12 +45,53 @@
 							iconSrc="sap-icon://decision"    text="{i18n>stepResult}"    state="{flow>/lane3}"/>
 					</pf:lanes>
 					<pf:nodes>
+						<!--
+							zoomLevel One and Two are the LARGE boxes (176x221 and 144x195);
+							Three and Four are small. The node's built-in state icon is tiny and
+							sits in a corner, so each box gets its own big centred icon instead.
+							FlexBox does the centring - no CSS.
+						-->
 						<pf:ProcessFlowNode laneId="lane1" nodeId="node1" title="1"
-							children="{flow>/node1children}" state="{flow>/node1}" isTitleClickable="false"/>
+							children="{flow>/node1children}" state="{flow>/node1}" isTitleClickable="false">
+							<pf:zoomLevelOneContent>
+								<FlexBox height="100%" justifyContent="Center" alignItems="Center">
+									<core:Icon src="{flow>/icon1}" color="{flow>/colour1}" size="4rem"/>
+								</FlexBox>
+							</pf:zoomLevelOneContent>
+							<pf:zoomLevelTwoContent>
+								<FlexBox height="100%" justifyContent="Center" alignItems="Center">
+									<core:Icon src="{flow>/icon1}" color="{flow>/colour1}" size="3rem"/>
+								</FlexBox>
+							</pf:zoomLevelTwoContent>
+						</pf:ProcessFlowNode>
+
 						<pf:ProcessFlowNode laneId="lane2" nodeId="node2" title="2"
-							children="{flow>/node2children}" state="{flow>/node2}" isTitleClickable="false"/>
+							children="{flow>/node2children}" state="{flow>/node2}" isTitleClickable="false">
+							<pf:zoomLevelOneContent>
+								<FlexBox height="100%" justifyContent="Center" alignItems="Center">
+									<core:Icon src="{flow>/icon2}" color="{flow>/colour2}" size="4rem"/>
+								</FlexBox>
+							</pf:zoomLevelOneContent>
+							<pf:zoomLevelTwoContent>
+								<FlexBox height="100%" justifyContent="Center" alignItems="Center">
+									<core:Icon src="{flow>/icon2}" color="{flow>/colour2}" size="3rem"/>
+								</FlexBox>
+							</pf:zoomLevelTwoContent>
+						</pf:ProcessFlowNode>
+
 						<pf:ProcessFlowNode laneId="lane3" nodeId="node3" title="3"
-							state="{flow>/node3}" isTitleClickable="false"/>
+							state="{flow>/node3}" isTitleClickable="false">
+							<pf:zoomLevelOneContent>
+								<FlexBox height="100%" justifyContent="Center" alignItems="Center">
+									<core:Icon src="{flow>/icon3}" color="{flow>/colour3}" size="4rem"/>
+								</FlexBox>
+							</pf:zoomLevelOneContent>
+							<pf:zoomLevelTwoContent>
+								<FlexBox height="100%" justifyContent="Center" alignItems="Center">
+									<core:Icon src="{flow>/icon3}" color="{flow>/colour3}" size="3rem"/>
+								</FlexBox>
+							</pf:zoomLevelTwoContent>
+						</pf:ProcessFlowNode>
 					</pf:nodes>
 				</pf:ProcessFlow>
 

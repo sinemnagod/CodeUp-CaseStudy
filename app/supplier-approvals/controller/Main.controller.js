@@ -280,6 +280,20 @@ sap.ui.define([
 		},
 
 		/** Same three-step flow the supplier sees in the portal. */
+		/**
+		 * The big symbol drawn in the middle of each process-flow box.
+		 * The control's own state icon is small and tucked in a corner, so we
+		 * put our own in the node's content aggregation instead.
+		 */
+		_nodeIcon: function (state) {
+			return {
+				Positive: { icon: "sap-icon://sys-enter-2",   colour: "Positive" },
+				Critical: { icon: "sap-icon://alert",          colour: "Critical" },
+				Negative: { icon: "sap-icon://sys-cancel",     colour: "Negative" },
+				Planned:  { icon: "sap-icon://pending",        colour: "Neutral"  }
+			}[state] || { icon: "sap-icon://pending", colour: "Neutral" };
+		},
+
 		_applyProcessFlow: function (status) {
 			const states = {
 				Submitted: { node1: "Positive", node2: "Critical", node3: "Planned" },
@@ -291,10 +305,23 @@ sap.ui.define([
 				return [{ state: nodeState === "Planned" ? "Neutral" : nodeState, value: 100 }];
 			};
 
+			const icon1 = this._nodeIcon(states.node1);
+			const icon2 = this._nodeIcon(states.node2);
+			const icon3 = this._nodeIcon(states.node3);
+
+			// zoomLevel is settable but not a declared property, so it cannot go
+			// in the XML. One and Two are the big boxes; Three and Four are tiny.
+			// the dialog is narrower than the page, so one size down
+			const flowControl = Fragment.byId(this.getView().getId() + "-detail", "detailProcessFlow");
+			if (flowControl && flowControl.setZoomLevel) { flowControl.setZoomLevel("Two"); }
+
 			this.getView().getModel("flow").setData({
 				node1: states.node1, node2: states.node2, node3: states.node3,
 				node1children: ["node2"], node2children: ["node3"],
-				lane1: laneOf(states.node1), lane2: laneOf(states.node2), lane3: laneOf(states.node3)
+				lane1: laneOf(states.node1), lane2: laneOf(states.node2), lane3: laneOf(states.node3),
+				icon1: icon1.icon, colour1: icon1.colour,
+				icon2: icon2.icon, colour2: icon2.colour,
+				icon3: icon3.icon, colour3: icon3.colour
 			});
 		},
 
