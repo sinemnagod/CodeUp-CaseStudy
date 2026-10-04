@@ -30,6 +30,15 @@ sap.ui.define([
 			}, this);
 		},
 
+		/**
+		 * If app/supplier-portal/img/login.jpg is not there, hide the panel
+		 * rather than showing a broken image. The form then centres on the
+		 * whole page, which is what it did before the photo existed.
+		 */
+		onImageMissing: function (event) {
+			event.getSource().setVisible(false);
+		},
+
 		onTogglePassword: function () {
 			const ui = this.getView().getModel("ui");
 			const hidden = ui.getProperty("/passwordType") === "Password";

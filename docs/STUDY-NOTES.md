@@ -1449,3 +1449,51 @@ blob; `pending` reads clearly as "not reached yet" at that size.
 > something looks, the no-CSS answer is to find the aggregation or control that
 > lets you supply the content yourself. Reading
 > `getMetadata().getAllAggregations()` found this in one call.
+
+---
+
+## 25. A background photo, still without CSS
+
+The login and register pages were a small card floating in white space. They
+now use the split layout from the company's own example: photo on the left
+half, form on the right.
+
+No stylesheet was needed, because **`sap.m.Image` has a background mode**:
+
+```xml
+<Image src="img/login.jpg" mode="Background"
+       backgroundSize="cover" backgroundPosition="center center"
+       width="100%" height="100%"/>
+```
+
+`mode`, `backgroundSize` and `backgroundPosition` are ordinary control
+properties. UI5 writes the CSS; we do not.
+
+The two halves are exactly equal because each carries:
+
+```xml
+<layoutData><FlexItemData growFactor="1" baseSize="0"/></layoutData>
+```
+
+`growFactor` alone is not enough - without `baseSize="0"` each half starts at
+its content width and the split comes out lopsided.
+
+### Two ways it degrades on purpose
+
+- `visible="{device>/system/desktop}"` drops the photo on phones, where half
+  the screen is too precious for decoration. That needs a **device model**,
+  registered once in `Component.js`:
+  `this.setModel(new JSONModel(Device), "device")`.
+- `error=".onImageMissing"` hides the panel if the file is not there, so a
+  missing `login.jpg` gives the old centred card rather than a broken image
+  icon. Both states were tested.
+
+### On the image itself
+
+The photo is **not** committed from a travel site or a stock library. It has
+to be something licensed for use - Unsplash and Pexels are free for commercial
+use - or a photo taken by the author. `app/supplier-portal/img/README.md` says
+so next to the file, because that is where someone will look when they swap it.
+
+A placeholder is committed so the layout is visible immediately; it is meant
+to be replaced.
