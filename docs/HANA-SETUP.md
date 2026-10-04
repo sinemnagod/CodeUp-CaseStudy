@@ -37,6 +37,25 @@ That is **SAP HANA Cloud Central**: free, instant, and the only comfortable
 place to set the password, open the IP allowlist, and **start the instance**
 after the trial stops it overnight. Open it with **Go to Application**.
 
+### It will say "Not authorized" the first time
+
+Subscribing to a service does **not** give you access to it - SAP's own tools
+need a role collection assigned, exactly like the `CodeUp Supplier Approver`
+role in this project.
+
+1. **Security** → **Role Collections**
+2. Find **`SAP HANA Cloud Administrator`** → **Edit**
+3. **Users** → `+` → your BTP e-mail as both **ID** and **E-Mail**,
+   Identity Provider **`Default identity provider`** → **Save**
+4. **Sign out and back in** (the error page has a button for it)
+
+Step 4 is not optional: roles are baked into the login token when it is
+issued, so an existing session keeps the old permissions.
+
+If the role collection is not in the list, the `tools` subscription has not
+finished yet - check that it reads *Subscribed* under
+**Instances and Subscriptions**.
+
 ---
 
 ## 2. Create the database
