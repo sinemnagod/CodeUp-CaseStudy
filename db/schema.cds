@@ -41,7 +41,11 @@ entity Suppliers : cuid, managed {
   aiDecision      : Boolean default false;  // was this decided by the AI?
 
   // On reject the approver picks which fields the supplier may correct.
-  // Stored as a simple comma-separated list, e.g. "phone,address,certificate".
+  // Stored as a simple comma-separated list, e.g. "phone,address".
+  //
+  // The certificate is deliberately NOT in this list: a new one is required on
+  // every submission, re-applications included, so it is never optional and
+  // never inherited from the attempt that was rejected.
   editableFields  : String(500);
 }
 

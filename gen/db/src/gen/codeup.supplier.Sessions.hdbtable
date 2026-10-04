@@ -1,0 +1,6 @@
+COLUMN TABLE codeup_supplier_Sessions (
+  token NVARCHAR(64) NOT NULL,
+  supplier_ID NVARCHAR(36),
+  expiresAt TIMESTAMP,
+  PRIMARY KEY(token)
+)
